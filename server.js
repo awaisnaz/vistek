@@ -911,7 +911,7 @@ app.use((req, res, next) => {
         6. Script (No need to set type="text/js" as it is default. No need to set src="" as this is not an external library. No need to set async/defer as it requries src attribute also. No need to set async/defer as your requirement is to execute js after html is parsed and htmlload event absolutely meets your requirements)
         7. Noscript (execute if no javascript is enabled. Ignore this tag.)
         -->
-        <title>VISTEK Vehicle Information System2</title>
+        <title>VISTEK Vehicle Information System</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Vehicle Identification System - VISTEK.">
