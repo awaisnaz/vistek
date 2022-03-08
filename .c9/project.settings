@@ -1,9 +1,5 @@
 {
-    "build": {
-        "@saveall": true
-    },
     "extensions": {
-        "@aws.profile": "profile:default",
         "@json.schemas": []
     },
     "instance": {

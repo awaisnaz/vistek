@@ -26,8 +26,8 @@ import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we
 let gun = Gun({
   file: 'data.json',
   s3: { // Optional; update to save a copy to AWS S3
-    key: 'AKIAXPDPHMRNRHHPATMI', // AWS Access Key
-    secret: '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', // AWS Secret Token
+    key: 'AKIAXPDPHMRNW5GW5Q5L', // AWS Access Key
+    secret: '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', // AWS Secret Token
     bucket: 'vistek' // The bucket you want to save into
   }
 })
