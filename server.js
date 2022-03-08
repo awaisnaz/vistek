@@ -19,7 +19,7 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 //Database Structure:
 //gun.users.id
 //gun.vehicles.id
-//gun.webhooks.id
+//gun.webhooks.id 
 import Gun from "gun";// gun stores null, not undefined. Can not store object if a string or null is already stored on a node, it fails silently. gun does not have event loop, thus it may ignore crud operations if busy. gun can not save arrays, so use the listed functions below to save/retrieve arrays, ".put(array2object(document))", and "Object.keys(resp.arraylist).map((key) => resp.arraylist[key])".
 import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
 import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.

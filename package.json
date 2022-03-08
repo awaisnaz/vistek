@@ -21,6 +21,7 @@
   "dependencies": {
     "compression": "1.7.4",
     "cookie-parser": "1.4.5",
+    "eb": "^0.0.1",
     "express": "4.17.1",
     "git": "0.1.5",
     "gun": "0.2020.1232",
