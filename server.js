@@ -26,8 +26,8 @@ import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we
 let gun = Gun({
   file: 'data.json',
   s3: { // Optional; update to save a copy to AWS S3
-    key: 'AKIAXPDPHMRNW5GW5Q5L', // AWS Access Key
-    secret: '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', // AWS Secret Token
+    key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
+    secret: '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', // AWS Secret Token
     bucket: 'vistek' // The bucket you want to save into
   }
 })
@@ -105,7 +105,7 @@ let stripe = Stripe("sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQx
 gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
   if (!res) {
     stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-      url: 'https://vistek.herokuapp.com/webhook',
+      url: 'http://vistek.eu-west-2.elasticbeanstalk.com/webhook',
       enabled_events: [
         'charge.failed',
         'charge.succeeded',
