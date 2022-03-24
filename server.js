@@ -1698,7 +1698,7 @@ app.use((req, res, next) => {
                     <form id="vehiclereg" action="/report" method="post">
                     </form>
                     <div style="display:grid;justify-items:center;">
-                      <input type="text" name="regno" form="vehiclereg" placeholder="Enter Reg" class="form" pattern="^[A-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." required style="background-color:#f9d441;padding:0.1rem;font-size:3rem;text-align:center;outline:none;border:0;width:100%;max-width:22rem;">
+                      <input type="text" name="regno" form="vehiclereg" placeholder="Enter Reg" class="form" pattern="^[A-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." required style="background-color:#f9d441;padding:0.1rem;font-size:3rem;text-align:center;outline:none;border:0;width:100%;max-width:22rem;text-transform:uppercase;">
                     </div>
                     <div style="display:grid;justify-items:center;">
                       <input type="submit" form="vehiclereg" style="background-color:#66d469;font-size:3rem;font-weight:bold;border:0;width:100%;max-width:22rem;cursor:pointer;" value="  Go  ">
@@ -1754,8 +1754,6 @@ app.use((req, res, next) => {
                     </div>
                     <div style="background:#2f2e2a;padding:0.5rem;">Insurance Writeoff
                     </div>
-                    <div style="background:#2f2e2a;padding:0.5rem;">Police Stolen
-                    </div>
                     <div style="background:#2f2e2a;padding:0.5rem;">High Risk Vehicle
                     </div>
                     <div style="background:#2f2e2a;padding:0.5rem;">Imported
@@ -1778,7 +1776,7 @@ app.use((req, res, next) => {
                     </div>
                     <div style="background:#2f2e2a;padding:0.5rem;">Logbook Check
                     </div>
-                    <div style="background:#2f2e2a;padding:0.5rem;">Stolen Car Check
+                    <div style="background:#2f2e2a;padding:0.5rem;">Stolen Vehicle Check
                     </div>
                   </div>
                 </div>
