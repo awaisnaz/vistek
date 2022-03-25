@@ -639,7 +639,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     if (req.dom.report.counter >= 4) next();
   }
 
-  if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full")))) {
+  if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").once((res) => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
       if (res) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
@@ -657,7 +657,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
             req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
           }
-          req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
+          if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
           req.dom.report.counter++;
           if (req.dom.report.counter >= 4) next();
         });
@@ -682,7 +682,7 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+            if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           })
@@ -712,7 +712,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
             req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
           }
-          req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+          if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
           req.dom.report.counter++;
           if (req.dom.report.counter >= 4) next();
         });
@@ -737,7 +737,7 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+            if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           })
@@ -758,7 +758,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     if (req.dom.report.counter >= 4) next();
   }
 
-  if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full"))) {
+  if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full")))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
       if (res) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").load((res) => {//sometimes gun.load hangs, so calling gun.once before it helps it not hang
@@ -1698,7 +1698,7 @@ app.use((req, res, next) => {
                     <form id="vehiclereg" action="/report" method="post">
                     </form>
                     <div style="display:grid;justify-items:center;">
-                      <input type="text" name="regno" form="vehiclereg" placeholder="Enter Reg" class="form" pattern="^[A-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." required style="background-color:#f9d441;padding:0.1rem;font-size:3rem;text-align:center;outline:none;border:0;width:100%;max-width:22rem;text-transform:uppercase;">
+                      <input type="text" name="regno" form="vehiclereg" placeholder="Enter Reg" class="form" pattern="^[a-zA-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." required style="background-color:#f9d441;padding:0.1rem;font-size:3rem;text-align:center;outline:none;border:0;width:100%;max-width:22rem;text-transform:uppercase;">
                     </div>
                     <div style="display:grid;justify-items:center;">
                       <input type="submit" form="vehiclereg" style="background-color:#66d469;font-size:3rem;font-weight:bold;border:0;width:100%;max-width:22rem;cursor:pointer;" value="  Go  ">
