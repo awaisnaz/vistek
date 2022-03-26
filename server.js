@@ -922,7 +922,13 @@ app.use((req, res, next) => {
         <meta name="description" content="Vehicle Identification System - VISTEK.">
         <meta name="keywords" content="vistek, vehicle information system, dvla, hpicheck, vdicheck">
         <meta name="author" content="VISTEK - Vehicle Information System">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="manifest" href="/site.webmanifest">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
         <!-- style tag is required before body so that the layout does not constantly glitch during loading -->
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');

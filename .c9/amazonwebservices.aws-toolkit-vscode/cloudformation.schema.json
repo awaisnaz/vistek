@@ -36210,6 +36210,27 @@
             "properties": {
                 "CloudFormation": {
                     "$ref": "#/definitions/AWS::DevOpsGuru::ResourceCollection.CloudFormationCollectionFilter"
+                },
+                "Tags": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::DevOpsGuru::ResourceCollection.TagCollection"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::DevOpsGuru::ResourceCollection.TagCollection": {
+            "additionalProperties": false,
+            "properties": {
+                "AppBoundaryKey": {
+                    "type": "string"
+                },
+                "TagValues": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 }
             },
             "type": "object"
@@ -36669,6 +36690,9 @@
                         },
                         "DBInstanceIdentifier": {
                             "type": "string"
+                        },
+                        "EnablePerformanceInsights": {
+                            "type": "boolean"
                         },
                         "PreferredMaintenanceWindow": {
                             "type": "string"
@@ -40697,10 +40721,28 @@
             },
             "type": "object"
         },
+        "AWS::EC2::LaunchTemplate.Ipv4PrefixSpecification": {
+            "additionalProperties": false,
+            "properties": {
+                "Ipv4Prefix": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "AWS::EC2::LaunchTemplate.Ipv6Add": {
             "additionalProperties": false,
             "properties": {
                 "Ipv6Address": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::EC2::LaunchTemplate.Ipv6PrefixSpecification": {
+            "additionalProperties": false,
+            "properties": {
+                "Ipv6Prefix": {
                     "type": "string"
                 }
             },
@@ -40940,12 +40982,30 @@
                 "InterfaceType": {
                     "type": "string"
                 },
+                "Ipv4PrefixCount": {
+                    "type": "number"
+                },
+                "Ipv4Prefixes": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::EC2::LaunchTemplate.Ipv4PrefixSpecification"
+                    },
+                    "type": "array"
+                },
                 "Ipv6AddressCount": {
                     "type": "number"
                 },
                 "Ipv6Addresses": {
                     "items": {
                         "$ref": "#/definitions/AWS::EC2::LaunchTemplate.Ipv6Add"
+                    },
+                    "type": "array"
+                },
+                "Ipv6PrefixCount": {
+                    "type": "number"
+                },
+                "Ipv6Prefixes": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::EC2::LaunchTemplate.Ipv6PrefixSpecification"
                     },
                     "type": "array"
                 },
@@ -57862,6 +57922,441 @@
             ],
             "type": "object"
         },
+        "AWS::FSx::Snapshot": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "Name": {
+                            "type": "string"
+                        },
+                        "Tags": {
+                            "items": {
+                                "$ref": "#/definitions/Tag"
+                            },
+                            "type": "array"
+                        },
+                        "VolumeId": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "Name",
+                        "VolumeId"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::FSx::Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::StorageVirtualMachine": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "ActiveDirectoryConfiguration": {
+                            "$ref": "#/definitions/AWS::FSx::StorageVirtualMachine.ActiveDirectoryConfiguration"
+                        },
+                        "FileSystemId": {
+                            "type": "string"
+                        },
+                        "Name": {
+                            "type": "string"
+                        },
+                        "RootVolumeSecurityStyle": {
+                            "type": "string"
+                        },
+                        "SvmAdminPassword": {
+                            "type": "string"
+                        },
+                        "Tags": {
+                            "items": {
+                                "$ref": "#/definitions/Tag"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "FileSystemId",
+                        "Name"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::FSx::StorageVirtualMachine"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::StorageVirtualMachine.ActiveDirectoryConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "NetBiosName": {
+                    "type": "string"
+                },
+                "SelfManagedActiveDirectoryConfiguration": {
+                    "$ref": "#/definitions/AWS::FSx::StorageVirtualMachine.SelfManagedActiveDirectoryConfiguration"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::FSx::StorageVirtualMachine.SelfManagedActiveDirectoryConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "DnsIps": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "DomainName": {
+                    "type": "string"
+                },
+                "FileSystemAdministratorsGroup": {
+                    "type": "string"
+                },
+                "OrganizationalUnitDistinguishedName": {
+                    "type": "string"
+                },
+                "Password": {
+                    "type": "string"
+                },
+                "UserName": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::FSx::Volume": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "BackupId": {
+                            "type": "string"
+                        },
+                        "Name": {
+                            "type": "string"
+                        },
+                        "OntapConfiguration": {
+                            "$ref": "#/definitions/AWS::FSx::Volume.OntapConfiguration"
+                        },
+                        "OpenZFSConfiguration": {
+                            "$ref": "#/definitions/AWS::FSx::Volume.OpenZFSConfiguration"
+                        },
+                        "Tags": {
+                            "items": {
+                                "$ref": "#/definitions/Tag"
+                            },
+                            "type": "array"
+                        },
+                        "VolumeType": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "Name"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::FSx::Volume"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::Volume.ClientConfigurations": {
+            "additionalProperties": false,
+            "properties": {
+                "Clients": {
+                    "type": "string"
+                },
+                "Options": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "Clients",
+                "Options"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::Volume.NfsExports": {
+            "additionalProperties": false,
+            "properties": {
+                "ClientConfigurations": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::FSx::Volume.ClientConfigurations"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "ClientConfigurations"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::Volume.OntapConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "JunctionPath": {
+                    "type": "string"
+                },
+                "SecurityStyle": {
+                    "type": "string"
+                },
+                "SizeInMegabytes": {
+                    "type": "string"
+                },
+                "StorageEfficiencyEnabled": {
+                    "type": "string"
+                },
+                "StorageVirtualMachineId": {
+                    "type": "string"
+                },
+                "TieringPolicy": {
+                    "$ref": "#/definitions/AWS::FSx::Volume.TieringPolicy"
+                }
+            },
+            "required": [
+                "JunctionPath",
+                "SizeInMegabytes",
+                "StorageEfficiencyEnabled",
+                "StorageVirtualMachineId"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::Volume.OpenZFSConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "CopyTagsToSnapshots": {
+                    "type": "boolean"
+                },
+                "DataCompressionType": {
+                    "type": "string"
+                },
+                "NfsExports": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::FSx::Volume.NfsExports"
+                    },
+                    "type": "array"
+                },
+                "Options": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "OriginSnapshot": {
+                    "$ref": "#/definitions/AWS::FSx::Volume.OriginSnapshot"
+                },
+                "ParentVolumeId": {
+                    "type": "string"
+                },
+                "ReadOnly": {
+                    "type": "boolean"
+                },
+                "RecordSizeKiB": {
+                    "type": "number"
+                },
+                "StorageCapacityQuotaGiB": {
+                    "type": "number"
+                },
+                "StorageCapacityReservationGiB": {
+                    "type": "number"
+                },
+                "UserAndGroupQuotas": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::FSx::Volume.UserAndGroupQuotas"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "ParentVolumeId"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::Volume.OriginSnapshot": {
+            "additionalProperties": false,
+            "properties": {
+                "CopyStrategy": {
+                    "type": "string"
+                },
+                "SnapshotARN": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "CopyStrategy",
+                "SnapshotARN"
+            ],
+            "type": "object"
+        },
+        "AWS::FSx::Volume.TieringPolicy": {
+            "additionalProperties": false,
+            "properties": {
+                "CoolingPeriod": {
+                    "type": "number"
+                },
+                "Name": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::FSx::Volume.UserAndGroupQuotas": {
+            "additionalProperties": false,
+            "properties": {
+                "Id": {
+                    "type": "number"
+                },
+                "StorageCapacityQuotaGiB": {
+                    "type": "number"
+                },
+                "Type": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Id",
+                "StorageCapacityQuotaGiB",
+                "Type"
+            ],
+            "type": "object"
+        },
         "AWS::FinSpace::Environment": {
             "additionalProperties": false,
             "properties": {
@@ -73306,6 +73801,446 @@
             ],
             "type": "object"
         },
+        "AWS::IoTEvents::AlarmModel": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "AlarmCapabilities": {
+                            "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AlarmCapabilities"
+                        },
+                        "AlarmEventActions": {
+                            "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AlarmEventActions"
+                        },
+                        "AlarmModelDescription": {
+                            "type": "string"
+                        },
+                        "AlarmModelName": {
+                            "type": "string"
+                        },
+                        "AlarmRule": {
+                            "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AlarmRule"
+                        },
+                        "Key": {
+                            "type": "string"
+                        },
+                        "RoleArn": {
+                            "type": "string"
+                        },
+                        "Severity": {
+                            "type": "number"
+                        },
+                        "Tags": {
+                            "items": {
+                                "$ref": "#/definitions/Tag"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "AlarmRule",
+                        "RoleArn"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::IoTEvents::AlarmModel"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AcknowledgeFlow": {
+            "additionalProperties": false,
+            "properties": {
+                "Enabled": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AlarmAction": {
+            "additionalProperties": false,
+            "properties": {
+                "DynamoDB": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.DynamoDB"
+                },
+                "DynamoDBv2": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.DynamoDBv2"
+                },
+                "Firehose": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Firehose"
+                },
+                "IotEvents": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.IotEvents"
+                },
+                "IotSiteWise": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.IotSiteWise"
+                },
+                "IotTopicPublish": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.IotTopicPublish"
+                },
+                "Lambda": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Lambda"
+                },
+                "Sns": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Sns"
+                },
+                "Sqs": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Sqs"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AlarmCapabilities": {
+            "additionalProperties": false,
+            "properties": {
+                "AcknowledgeFlow": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AcknowledgeFlow"
+                },
+                "InitializationConfiguration": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.InitializationConfiguration"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AlarmEventActions": {
+            "additionalProperties": false,
+            "properties": {
+                "AlarmActions": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AlarmAction"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AlarmRule": {
+            "additionalProperties": false,
+            "properties": {
+                "SimpleRule": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.SimpleRule"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AssetPropertyTimestamp": {
+            "additionalProperties": false,
+            "properties": {
+                "OffsetInNanos": {
+                    "type": "string"
+                },
+                "TimeInSeconds": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TimeInSeconds"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AssetPropertyValue": {
+            "additionalProperties": false,
+            "properties": {
+                "Quality": {
+                    "type": "string"
+                },
+                "Timestamp": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AssetPropertyTimestamp"
+                },
+                "Value": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AssetPropertyVariant"
+                }
+            },
+            "required": [
+                "Value"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.AssetPropertyVariant": {
+            "additionalProperties": false,
+            "properties": {
+                "BooleanValue": {
+                    "type": "string"
+                },
+                "DoubleValue": {
+                    "type": "string"
+                },
+                "IntegerValue": {
+                    "type": "string"
+                },
+                "StringValue": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.DynamoDB": {
+            "additionalProperties": false,
+            "properties": {
+                "HashKeyField": {
+                    "type": "string"
+                },
+                "HashKeyType": {
+                    "type": "string"
+                },
+                "HashKeyValue": {
+                    "type": "string"
+                },
+                "Operation": {
+                    "type": "string"
+                },
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                },
+                "PayloadField": {
+                    "type": "string"
+                },
+                "RangeKeyField": {
+                    "type": "string"
+                },
+                "RangeKeyType": {
+                    "type": "string"
+                },
+                "RangeKeyValue": {
+                    "type": "string"
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "HashKeyField",
+                "HashKeyValue",
+                "TableName"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.DynamoDBv2": {
+            "additionalProperties": false,
+            "properties": {
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TableName"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.Firehose": {
+            "additionalProperties": false,
+            "properties": {
+                "DeliveryStreamName": {
+                    "type": "string"
+                },
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                },
+                "Separator": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "DeliveryStreamName"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.InitializationConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "DisabledOnInitialization": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "DisabledOnInitialization"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.IotEvents": {
+            "additionalProperties": false,
+            "properties": {
+                "InputName": {
+                    "type": "string"
+                },
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                }
+            },
+            "required": [
+                "InputName"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.IotSiteWise": {
+            "additionalProperties": false,
+            "properties": {
+                "AssetId": {
+                    "type": "string"
+                },
+                "EntryId": {
+                    "type": "string"
+                },
+                "PropertyAlias": {
+                    "type": "string"
+                },
+                "PropertyId": {
+                    "type": "string"
+                },
+                "PropertyValue": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.AssetPropertyValue"
+                }
+            },
+            "required": [
+                "PropertyValue"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.IotTopicPublish": {
+            "additionalProperties": false,
+            "properties": {
+                "MqttTopic": {
+                    "type": "string"
+                },
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                }
+            },
+            "required": [
+                "MqttTopic"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.Lambda": {
+            "additionalProperties": false,
+            "properties": {
+                "FunctionArn": {
+                    "type": "string"
+                },
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                }
+            },
+            "required": [
+                "FunctionArn"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.Payload": {
+            "additionalProperties": false,
+            "properties": {
+                "ContentExpression": {
+                    "type": "string"
+                },
+                "Type": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "ContentExpression",
+                "Type"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.SimpleRule": {
+            "additionalProperties": false,
+            "properties": {
+                "ComparisonOperator": {
+                    "type": "string"
+                },
+                "InputProperty": {
+                    "type": "string"
+                },
+                "Threshold": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "ComparisonOperator",
+                "InputProperty",
+                "Threshold"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.Sns": {
+            "additionalProperties": false,
+            "properties": {
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                },
+                "TargetArn": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TargetArn"
+            ],
+            "type": "object"
+        },
+        "AWS::IoTEvents::AlarmModel.Sqs": {
+            "additionalProperties": false,
+            "properties": {
+                "Payload": {
+                    "$ref": "#/definitions/AWS::IoTEvents::AlarmModel.Payload"
+                },
+                "QueueUrl": {
+                    "type": "string"
+                },
+                "UseBase64": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "QueueUrl"
+            ],
+            "type": "object"
+        },
         "AWS::IoTEvents::DetectorModel": {
             "additionalProperties": false,
             "properties": {
@@ -82111,6 +83046,9 @@
                         "Environment": {
                             "$ref": "#/definitions/AWS::Lambda::Function.Environment"
                         },
+                        "EphemeralStorage": {
+                            "$ref": "#/definitions/AWS::Lambda::Function.EphemeralStorage"
+                        },
                         "FileSystemConfigs": {
                             "items": {
                                 "$ref": "#/definitions/AWS::Lambda::Function.FileSystemConfig"
@@ -82236,6 +83174,18 @@
                     "type": "object"
                 }
             },
+            "type": "object"
+        },
+        "AWS::Lambda::Function.EphemeralStorage": {
+            "additionalProperties": false,
+            "properties": {
+                "Size": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "Size"
+            ],
             "type": "object"
         },
         "AWS::Lambda::Function.FileSystemConfig": {
@@ -82521,6 +83471,9 @@
                         "Principal": {
                             "type": "string"
                         },
+                        "PrincipalOrgID": {
+                            "type": "string"
+                        },
                         "SourceAccount": {
                             "type": "string"
                         },
@@ -82704,6 +83657,9 @@
                         "RoleArn": {
                             "type": "string"
                         },
+                        "TestBotAliasSettings": {
+                            "$ref": "#/definitions/AWS::Lex::Bot.TestBotAliasSettings"
+                        },
                         "TestBotAliasTags": {
                             "items": {
                                 "$ref": "#/definitions/Tag"
@@ -82740,9 +83696,80 @@
             ],
             "type": "object"
         },
+        "AWS::Lex::Bot.AdvancedRecognitionSetting": {
+            "additionalProperties": false,
+            "properties": {
+                "AudioRecognitionStrategy": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::Lex::Bot.AudioLogDestination": {
+            "additionalProperties": false,
+            "properties": {
+                "S3Bucket": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.S3BucketLogDestination"
+                }
+            },
+            "required": [
+                "S3Bucket"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.AudioLogSetting": {
+            "additionalProperties": false,
+            "properties": {
+                "Destination": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.AudioLogDestination"
+                },
+                "Enabled": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "Destination",
+                "Enabled"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.BotAliasLocaleSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "CodeHookSpecification": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.CodeHookSpecification"
+                },
+                "Enabled": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "Enabled"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.BotAliasLocaleSettingsItem": {
+            "additionalProperties": false,
+            "properties": {
+                "BotAliasLocaleSetting": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.BotAliasLocaleSettings"
+                },
+                "LocaleId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "BotAliasLocaleSetting",
+                "LocaleId"
+            ],
+            "type": "object"
+        },
         "AWS::Lex::Bot.BotLocale": {
             "additionalProperties": false,
             "properties": {
+                "CustomVocabulary": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.CustomVocabulary"
+                },
                 "Description": {
                     "type": "string"
                 },
@@ -82790,6 +83817,52 @@
             ],
             "type": "object"
         },
+        "AWS::Lex::Bot.CloudWatchLogGroupLogDestination": {
+            "additionalProperties": false,
+            "properties": {
+                "CloudWatchLogGroupArn": {
+                    "type": "string"
+                },
+                "LogPrefix": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "CloudWatchLogGroupArn",
+                "LogPrefix"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.CodeHookSpecification": {
+            "additionalProperties": false,
+            "properties": {
+                "LambdaCodeHook": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.LambdaCodeHook"
+                }
+            },
+            "required": [
+                "LambdaCodeHook"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.ConversationLogSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "AudioLogSettings": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::Lex::Bot.AudioLogSetting"
+                    },
+                    "type": "array"
+                },
+                "TextLogSettings": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::Lex::Bot.TextLogSetting"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
         "AWS::Lex::Bot.CustomPayload": {
             "additionalProperties": false,
             "properties": {
@@ -82799,6 +83872,36 @@
             },
             "required": [
                 "Value"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.CustomVocabulary": {
+            "additionalProperties": false,
+            "properties": {
+                "CustomVocabularyItems": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::Lex::Bot.CustomVocabularyItem"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "CustomVocabularyItems"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.CustomVocabularyItem": {
+            "additionalProperties": false,
+            "properties": {
+                "Phrase": {
+                    "type": "string"
+                },
+                "Weight": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "Phrase"
             ],
             "type": "object"
         },
@@ -83085,6 +84188,22 @@
             ],
             "type": "object"
         },
+        "AWS::Lex::Bot.LambdaCodeHook": {
+            "additionalProperties": false,
+            "properties": {
+                "CodeHookInterfaceVersion": {
+                    "type": "string"
+                },
+                "LambdaArn": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "CodeHookInterfaceVersion",
+                "LambdaArn"
+            ],
+            "type": "object"
+        },
         "AWS::Lex::Bot.Message": {
             "additionalProperties": false,
             "properties": {
@@ -83226,6 +84345,25 @@
             },
             "required": [
                 "MessageGroupsList"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.S3BucketLogDestination": {
+            "additionalProperties": false,
+            "properties": {
+                "KmsKeyArn": {
+                    "type": "string"
+                },
+                "LogPrefix": {
+                    "type": "string"
+                },
+                "S3BucketArn": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "LogPrefix",
+                "S3BucketArn"
             ],
             "type": "object"
         },
@@ -83446,6 +84584,9 @@
         "AWS::Lex::Bot.SlotValueSelectionSetting": {
             "additionalProperties": false,
             "properties": {
+                "AdvancedRecognitionSetting": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.AdvancedRecognitionSetting"
+                },
                 "RegexFilter": {
                     "$ref": "#/definitions/AWS::Lex::Bot.SlotValueRegexFilter"
                 },
@@ -83481,6 +84622,55 @@
                 "FrequencyInSeconds",
                 "MessageGroupsList",
                 "TimeoutInSeconds"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.TestBotAliasSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "BotAliasLocaleSettings": {
+                    "items": {
+                        "$ref": "#/definitions/AWS::Lex::Bot.BotAliasLocaleSettingsItem"
+                    },
+                    "type": "array"
+                },
+                "ConversationLogSettings": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.ConversationLogSettings"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "SentimentAnalysisSettings": {
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::Lex::Bot.TextLogDestination": {
+            "additionalProperties": false,
+            "properties": {
+                "CloudWatch": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.CloudWatchLogGroupLogDestination"
+                }
+            },
+            "required": [
+                "CloudWatch"
+            ],
+            "type": "object"
+        },
+        "AWS::Lex::Bot.TextLogSetting": {
+            "additionalProperties": false,
+            "properties": {
+                "Destination": {
+                    "$ref": "#/definitions/AWS::Lex::Bot.TextLogDestination"
+                },
+                "Enabled": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "Destination",
+                "Enabled"
             ],
             "type": "object"
         },
@@ -93190,6 +94380,22 @@
             },
             "type": "object"
         },
+        "AWS::MediaPackage::OriginEndpoint.EncryptionContractConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "PresetSpeke20Audio": {
+                    "type": "string"
+                },
+                "PresetSpeke20Video": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "PresetSpeke20Audio",
+                "PresetSpeke20Video"
+            ],
+            "type": "object"
+        },
         "AWS::MediaPackage::OriginEndpoint.HlsEncryption": {
             "additionalProperties": false,
             "properties": {
@@ -93333,6 +94539,9 @@
             "properties": {
                 "CertificateArn": {
                     "type": "string"
+                },
+                "EncryptionContractConfiguration": {
+                    "$ref": "#/definitions/AWS::MediaPackage::OriginEndpoint.EncryptionContractConfiguration"
                 },
                 "ResourceId": {
                     "type": "string"
@@ -130140,6 +131349,15 @@
                             "$ref": "#/definitions/AWS::FSx::FileSystem"
                         },
                         {
+                            "$ref": "#/definitions/AWS::FSx::Snapshot"
+                        },
+                        {
+                            "$ref": "#/definitions/AWS::FSx::StorageVirtualMachine"
+                        },
+                        {
+                            "$ref": "#/definitions/AWS::FSx::Volume"
+                        },
+                        {
                             "$ref": "#/definitions/AWS::FinSpace::Environment"
                         },
                         {
@@ -130498,6 +131716,9 @@
                         },
                         {
                             "$ref": "#/definitions/AWS::IoTCoreDeviceAdvisor::SuiteDefinition"
+                        },
+                        {
+                            "$ref": "#/definitions/AWS::IoTEvents::AlarmModel"
                         },
                         {
                             "$ref": "#/definitions/AWS::IoTEvents::DetectorModel"
