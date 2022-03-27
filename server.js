@@ -599,7 +599,7 @@ app.use("/report", upload.array(), (req, res, next) => {
 
   if (req.body.regno) {
     let temp = req.body.regno.split("-");
-    req.dom.report.regno = temp[0];
+    req.dom.report.regno = temp[0].toUpperCase();
     req.dom.report.mode = temp[1];
   }
 
@@ -1237,11 +1237,11 @@ app.use((req, res, next) => {
                 dashboardreportsrecordtemplate.querySelector(".dashboardregno").innerHTML = key;
                 dashboardreportsrecordtemplate.querySelector(".dashboardreportfree").setAttribute("value", key + "-free");
                 dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("value", key + "-basic");
-                if (cars[key].basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "purple";
-                if (!dom.dashboard.balance.basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").disabled = true;
-                if (!dom.dashboard.balance.full) dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").disabled = true;
                 dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("value", key + "-full");
+                if (cars[key].basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "purple";
                 if (cars[key].full) dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").style.color = "purple";
+                if (!dom.dashboard.balance.basic && !cars[key].basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").disabled = true;
+                if (!dom.dashboard.balance.full && !cars[key].full) dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").disabled = true;
                 window.document.querySelector(".dashboardreportsrecords").appendChild(dashboardreportsrecordtemplate);
               });
             }
