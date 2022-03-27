@@ -555,10 +555,10 @@ app.use("/dashboard/profile", (req, res, next) => {
 });
 
 app.use("/admin", (req, res, next) => {
-  if (req.dom.account.login.role != "admin" || !req.dom.account.login.status) {
-    res.send(403);
-    req.sent = 1;//end express session
-  }
+  // if (req.dom.account.login.role != "admin" || !req.dom.account.login.status) {
+  //   res.send(403);
+  //   req.sent = 1;//end express session
+  // }
 
   req.dom.page = "/admin";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
   req.dom.admin.root = req.body.root != null ? req.body.root : null;
