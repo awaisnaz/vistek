@@ -903,7 +903,7 @@ app.use((req, res, next) => {
   console.log("dom:", req.dom);
   gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object.
   let dom = `
-    <!DOCTYPE html>
+    <!DOCTYPE html> 
     <html lang="en">
       <head>
         <!-- there are 7 metadata (non-displayed informational data) tags inside head tag:
