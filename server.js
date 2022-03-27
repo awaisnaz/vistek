@@ -445,7 +445,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: ['https://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
             },
             unit_amount: 249,
           },
@@ -453,8 +453,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'https://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1',
-      cancel_url: 'https://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -475,7 +475,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: ['https://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
             },
             unit_amount: 799,
           },
@@ -483,8 +483,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'https://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagefull=1',
-      cancel_url: 'https://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagefull=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -505,7 +505,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: ['https://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
             },
             unit_amount: 1445,
           },
@@ -513,8 +513,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'https://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagemulti=1',
-      cancel_url: 'https://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagemulti=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
     })
       .then(resp => {
         res.redirect(resp.url);
