@@ -24,7 +24,6 @@ import Gun from "gun";// gun stores null, not undefined. Can not store object if
 import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
 import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
 let gun = Gun({
-  file: 'data.json',
   s3: { // Optional; update to save a copy to AWS S3
     key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
     secret: '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', // AWS Secret Token
