@@ -908,12 +908,12 @@ app.use("/webhook", (req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  console.log("user:", req.cookies.user);
-  console.log("time:", Date.now());
-  console.log("page:", req.url);
-  console.log("form:", req.body);
-  console.log("dom:", req.dom);
-  gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object.
+  if(req.cookies.user) console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
+  if(req.cookies.user) console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
+  if(req.cookies.user) console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
+  if(req.cookies.user) console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
+  if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
+  if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
   let dom = `
     <!DOCTYPE html> 
     <html lang="en">
@@ -4725,7 +4725,7 @@ app.use((req, res, next) => {
 
   //"return" only returns from the immediate function, not outer function. Thus, express never ends its session in nested function when return is called. Only solution is to use local variable to store that information. 
   if (!req.sent) res.send(dom);
-  console.log("--------------------------------");
+  if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
 });
 
 //last rest point and catch all.
