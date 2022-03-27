@@ -669,11 +669,10 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
-            gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").put(res.body.Response.DataItems);
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").put(res.body.Response.DataItems);
             req.dom.report.valuation = res.body.Response.DataItems;
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
+            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
               req.dom.dashboard.balance.transactions[time].time = time;
@@ -684,7 +683,7 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
-            if (req.dom.report.regno != "AA19AAA") {
+            if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
               req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//place it after the basic balance minus if statement.
             }
@@ -731,10 +730,9 @@ app.use("/report", upload.array(), (req, res, next) => {
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
           .then(res => {
             req.dom.report.vehicleandmothistory = res.body.Response.DataItems;
-            gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
+            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
               req.dom.dashboard.balance.transactions[time].time = time;
@@ -745,7 +743,7 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
-            if (req.dom.report.regno != "AA19AAA") {
+            if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
               req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
             }
@@ -778,7 +776,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
             req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
             req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
-
+           
             let time = Date.now();
             req.dom.dashboard.balance.transactions[time] = {};
             req.dom.dashboard.balance.transactions[time].time = time;
@@ -797,13 +795,12 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
-            gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
             req.dom.report.full = res.body.Response.DataItems;
             req.dom.report.counter++;
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
+            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
               req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
-
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
               req.dom.dashboard.balance.transactions[time].time = time;
