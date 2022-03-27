@@ -2235,7 +2235,7 @@ app.use((req, res, next) => {
                     Full Credits. 
                 </div>
                 <div style="padding:0 0.5rem;color:#CF9AFF;">
-                  Note: Disabled View Report Buttons means you need to add respective Credits. To add Credits, click <a href="/dashboard/balance">here</a>.
+                  Note: Disabled View Report Buttons means you need to add respective Credits. To add Credits, <a href="/dashboard/balance">click here</a>.
                 </div>
               </div>
               <div class="dashboardreportsrecordstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;margin-top:1rem;font-weight:bold;font-size:1.5rem;">
