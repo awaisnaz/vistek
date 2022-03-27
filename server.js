@@ -640,7 +640,7 @@ app.use("/report", upload.array(), (req, res, next) => {
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").once((res) => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res) {
+      if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.valuation = res;
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
@@ -656,7 +656,10 @@ app.use("/report", upload.array(), (req, res, next) => {
             req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
             req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
           }
-          if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
+          if (req.dom.report.regno != "AA19AAA") {
+            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
+            req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//Place it after the basic balance minus if statement.
+          }
           req.dom.report.counter++;
           if (req.dom.report.counter >= 4) next();
         });
@@ -681,7 +684,10 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
-            if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+            if (req.dom.report.regno != "AA19AAA") {
+              req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+              req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//place it after the basic balance minus if statement.
+            }
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           })
@@ -695,7 +701,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     });
     
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").once((res) => {
-      if (res) {
+      if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.vehicleandmothistory = res;
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
@@ -711,7 +717,10 @@ app.use("/report", upload.array(), (req, res, next) => {
             req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
             req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
           }
-          if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+          if (req.dom.report.regno != "AA19AAA") {
+            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+            req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
+          }
           req.dom.report.counter++;
           if (req.dom.report.counter >= 4) next();
         });
@@ -736,7 +745,10 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
-            if (req.dom.report.regno != "AA19AAA") req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+            if (req.dom.report.regno != "AA19AAA") {
+              req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+              req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
+            }
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           })
@@ -1199,11 +1211,13 @@ app.use((req, res, next) => {
               window.document.querySelector(".accountloginmessage").innerHTML = dom.account.login.message.text;
               window.document.querySelector(".accountloginmessage").style.color = dom.account.login.message.color;
             }
+
             if (dom.account.register.message.text) {
               window.document.querySelector(".accountregistermessage").style.display = "grid";
               window.document.querySelector(".accountregistermessage").innerHTML = dom.account.register.message.text;
               window.document.querySelector(".accountregistermessage").style.color = dom.account.register.message.color;
             }
+
             if (dom.account.reset.message.text) {
               window.document.querySelector(".accountresetmessage").style.display = "grid";
               window.document.querySelector(".accountresetmessage").innerHTML = dom.account.reset.message.text;
