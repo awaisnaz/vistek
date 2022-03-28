@@ -4731,5 +4731,8 @@ app.use((req, res, next) => {
 //last rest point and catch all.
 app.use(/.*/, function (req, res, next) {
   let permittedpaths = ["/", "/account/login", "/account/register", "/account/reset", "/account/logout", "/dashboard/reports", "/dashboard/balance", "/dashboard/profile", "/admin", "/contact", "/about", "/privacy", "/terms", "/webhook"];
-  if (!permittedpaths.includes(req.url)) res.redirect("/");
+  if (!permittedpaths.includes(req.url)) {
+    console.log("mobile",req.url);
+    res.redirect("/");
+  }
 });
