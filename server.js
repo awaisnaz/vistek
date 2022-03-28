@@ -606,6 +606,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   if (req.dom.report.regno) {
     gun.get("vehicles").get(req.dom.report.regno).get("dvla").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
       if (res) {
+        console.log("1");
         gun.get("vehicles").get(req.dom.report.regno).get("dvla").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.dvla = res;
           req.dom.report.counter++;
@@ -619,12 +620,14 @@ app.use("/report", upload.array(), (req, res, next) => {
           .set('Content-Type', 'application/json')
           .send({ registrationNumber: `${req.dom.report.regno}` })
           .then(res => {
+            console.log("2");
             gun.get("vehicles").get(req.dom.report.regno).get("dvla").put(res.body);
             req.dom.report.dvla = res.body;
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           })
           .catch(err => {
+            console.log("3");
             console.log(err);
             req.dom.report.dvla = "error";
             req.dom.report.counter = req.dom.report.counter + 4;//dvla api fails with .catch, but vdicheck api's fails silently without .catch. So, when dvla api fails, it means that the registration number does not exist.
@@ -634,6 +637,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     });
   }
   else { 
+    console.log("4");
     req.dom.report.counter++;
     if (req.dom.report.counter >= 4) next();
   }
@@ -641,6 +645,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").once((res) => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
       if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata) {
+        console.log("5");
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.valuation = res;
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
@@ -669,6 +674,7 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
+            console.log("6");
             if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").put(res.body.Response.DataItems);
             req.dom.report.valuation = res.body.Response.DataItems;
             if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
@@ -691,6 +697,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             if (req.dom.report.counter >= 4) next();
           })
           .catch(err => {
+            console.log("7");
             console.log(err);
             req.dom.report.basic = "error";
             req.dom.report.counter++;
@@ -701,6 +708,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").once((res) => {
       if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory) {
+        console.log("8");
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.vehicleandmothistory = res;
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
@@ -729,6 +737,7 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
           .then(res => {
+            console.log("9");
             req.dom.report.vehicleandmothistory = res.body.Response.DataItems;
             if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
             if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
@@ -751,6 +760,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             if (req.dom.report.counter >= 4) next();
           })
           .catch(err => {
+            console.log("10");
             console.log(err);
             req.dom.report.basic = "error";
             req.dom.report.counter++;
@@ -760,6 +770,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     });
   } 
   else {
+    console.log("11");
     req.dom.report.basic = null;
     //two times increment because this section has two api calls.
     req.dom.report.counter++;
@@ -770,6 +781,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full")))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
       if (res) {
+        console.log("12");
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").load((res) => {//sometimes gun.load hangs, so calling gun.once before it helps it not hang
           req.dom.report.full = res;
           req.dom.report.counter++;
@@ -795,6 +807,7 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
+            console.log("13");
             if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
             req.dom.report.full = res.body.Response.DataItems;
             req.dom.report.counter++;
@@ -814,6 +827,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             if (req.dom.report.counter >= 4) next();
           })
           .catch(err => {
+            console.log("14");
             console.log(err);
             req.dom.report.full = "error";
             req.dom.report.counter++;
@@ -823,6 +837,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     });
   }
   else {
+    console.log("15");
     req.dom.report.full = null;
     req.dom.report.counter++;
     if (req.dom.report.counter >= 4) next();
