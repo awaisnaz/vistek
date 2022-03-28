@@ -4736,7 +4736,10 @@ app.use((req, res, next) => {
     `;
 
   //"return" only returns from the immediate function, not outer function. Thus, express never ends its session in nested function when return is called. Only solution is to use local variable to store that information. 
-  if (!req.sent) res.send(dom);
+  if (!req.sent) {
+    req.sent = 1;
+    res.send(dom);
+  }
   if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
 });
 
