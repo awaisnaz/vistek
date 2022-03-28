@@ -4742,5 +4742,5 @@ app.use((req, res, next) => {
 
 //last rest point and catch all.
 app.use(/.*/, function (req, res, next) {
-  res.redirect("/");
+  if (!req.sent) res.redirect("/");
 });
