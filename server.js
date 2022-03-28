@@ -4730,6 +4730,6 @@ app.use((req, res, next) => {
 
 //last rest point and catch all.
 app.use(/.*/, function (req, res, next) {
-  console.log(req.url);
-  if (!req.sent) res.redirect("/");
+  let permittedpaths = ["/", "/account/login", "/account/register", "/account/reset", "/account/logout", "/dashboard/reports", "/dashboard/balance", "/dashboard/profile", "/admin", "/contact", "/about", "/privacy", "/terms", "/webhook"];
+  if (!permittedpaths.includes(req.url)) res.redirect("/");
 });
