@@ -29,8 +29,6 @@ let gun = Gun({
     secret: '8kgX+dHr2dRon3RILeE3lkuksGgxdFLh0aAMvkP/', // AWS Secret Token
     bucket: 'vistek' // The bucket you want to save into
   },
-  localStorage: false,
-  radisk: false,
   web: server
 });
 // let gun = Gun({web: server});
