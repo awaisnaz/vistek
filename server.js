@@ -596,6 +596,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   req.dom.report.full = null;//initialization
   req.dom.report.counter = 0;//initialization
   req.dom.page = "/report";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it. Setting it before other code helps set it before next() statement.
+  console.log("MIKA",req.dom.dashboard.reports.cars);
 
   if (req.body.regno) {
     let temp = req.body.regno.split("-");
