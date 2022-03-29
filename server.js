@@ -913,9 +913,9 @@ app.use((req, res, next) => {
   if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
   
-  setInterval( ()=>{
-    if(req.cookies.user) gun.get("users").get(req.cookies.user).load(res => console.log("BOM",res,"MOM"))
-    }, 1000);
+  // setInterval( ()=>{
+  //   if(req.cookies.user) gun.get("users").get(req.cookies.user).load(res => console.log("BOM",res,"MOM"))
+  //   }, 1000);
   
   let dom = `
     <!DOCTYPE html> 
