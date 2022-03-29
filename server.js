@@ -28,7 +28,10 @@ let gun = Gun({
     key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
     secret: '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', // AWS Secret Token
     bucket: 'vistek' // The bucket you want to save into
-  }
+  },
+  localStorage: false,
+  radisk: false,
+  web: server
 });
 // let gun = Gun({web: server});
 function array2object(arr) {
