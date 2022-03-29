@@ -23,13 +23,14 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 import Gun from "gun";// gun stores null, not undefined. Can not store object if a string or null is already stored on a node, it fails silently. gun does not have event loop, thus it may ignore crud operations if busy. gun can not save arrays, so use the listed functions below to save/retrieve arrays, ".put(array2object(document))", and "Object.keys(resp.arraylist).map((key) => resp.arraylist[key])".
 import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
 import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
-let gun = Gun({
-  s3: { // Optional; update to save a copy to AWS S3
-    key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
-    secret: '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', // AWS Secret Token
-    bucket: 'vistek' // The bucket you want to save into
-  }
-})
+// let gun = Gun({
+//   s3: { // Optional; update to save a copy to AWS S3
+//     key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
+//     secret: '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', // AWS Secret Token
+//     bucket: 'vistek' // The bucket you want to save into
+//   }
+// })
+let gun = Gun({web: server});
 function array2object(arr) {
   var obj = {};
 	Gun.list.map(arr, function(v, f, t) {
@@ -596,7 +597,6 @@ app.use("/report", upload.array(), (req, res, next) => {
   req.dom.report.full = null;//initialization
   req.dom.report.counter = 0;//initialization
   req.dom.page = "/report";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it. Setting it before other code helps set it before next() statement.
-  console.log("MIKA",req.dom.dashboard.reports.cars);
 
   if (req.body.regno) {
     let temp = req.body.regno.split("-");
@@ -912,14 +912,6 @@ app.use((req, res, next) => {
   if(req.cookies.user) console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
-  
-  setTimeout( () => {
-    if(req.cookies.user) {
-      gun.get("users").get(req.cookies.user).once((res) => {
-        gun.get("users").get(req.cookies.user).load((res ) => console.log("BOM",res,"MOM"));
-      });
-    }
-  }, 1000);
   
   let dom = `
     <!DOCTYPE html> 
