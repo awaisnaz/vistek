@@ -915,7 +915,7 @@ app.use((req, res, next) => {
   
   setTimeout( ()=>{
     if(req.cookies.user) gun.get("users").get(req.cookies.user).load(res => console.log("BOM",res,"MOM"))
-    }, 1000);
+    }, 10000);
   
   let dom = `
     <!DOCTYPE html> 
