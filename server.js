@@ -1240,8 +1240,20 @@ app.use((req, res, next) => {
                 dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("value", key + "-full");
                 if (cars[key].basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "purple";
                 if (cars[key].full) dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").style.color = "purple";
-                if (!dom.dashboard.balance.basic && !cars[key].basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").disabled = true;
-                if (!dom.dashboard.balance.full && !cars[key].full) dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").disabled = true;
+                if (!dom.dashboard.balance.basic && !cars[key].basic) {
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("name","dashboardbalanceaddbasic");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("form","dashboardreportsbuttonsbalance");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("value","ORDER BASIC REPORT");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "#b39932";
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("onclick","return confirm('Insufficient Balance. Click OK to buy Balance.');");
+                }
+                if (!dom.dashboard.balance.full && !cars[key].full) {
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("name","dashboardbalanceaddfull");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("form","dashboardreportsbuttonsbalance");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("value","ORDER FULL REPORT");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").style.color = "#b39932";
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("onclick","return confirm('Insufficient Balance. Click OK to buy Balance.');");
+                }
                 window.document.querySelector(".dashboardreportsrecords").appendChild(dashboardreportsrecordtemplate);
               });
             }
@@ -1832,7 +1844,7 @@ app.use((req, res, next) => {
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     PRODUCTS
                   </div>
-                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:1rem;color:black;text-align:center;">
+                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:bold;color:black;text-align:center;">
                     Data
                   </div>
                 </div>
@@ -1840,7 +1852,7 @@ app.use((req, res, next) => {
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     BASIC REPORT
                   </div>
-                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:1rem;color:black;text-align:center;">
+                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:bold;color:black;text-align:center;">
                     £2.49
                   </div>
                 </div>
@@ -1848,15 +1860,15 @@ app.use((req, res, next) => {
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     FULL REPORT
                   </div>
-                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:1rem;color:black;text-align:center;">
+                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:bold;color:black;text-align:center;">
                     £7.99
                   </div>
                 </div>
                 <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;border-top-right-radius:1rem;">
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
-                    MULTIPLE REPORTS
+                    MULTIPLE FULL REPORTS
                   </div>
-                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:1rem;color:black;text-align:center;">
+                  <div style="display:grid;align-self:end;font-weight:normal;font-weight:bold;color:black;text-align:center;">
                     £14.45
                   </div>
                 </div>
@@ -2026,7 +2038,7 @@ app.use((req, res, next) => {
                   One(1)
                 </div>
                 <div style="display:grid;background:#2f2e2a;padding:0.5rem;font-weight:bold;justify-items:center;align-items:center;text-align:center;">
-                  Five(5)
+                  Three(3)
                 </div>
                 <div style="background:#2f2e2a;border-bottom-left-radius:1rem;">
                   <div style="display:grid;justify-items:center;">
@@ -2208,6 +2220,8 @@ app.use((req, res, next) => {
             <div class="dashboardreports dashboardrecord grid2" id="dashboardreports" style="display:none;grid-auto-flow:row;justify-items:center;margin:0.5rem;">
               <form id="dashboardreportsbuttons" action="/report" method="post">
               </form>
+              <form id="dashboardreportsbuttonsbalance" action="/dashboard/balance" method="post">
+              </form>
               <div class="dashboardreportstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;font-weight:bold;font-size:1.5rem;">
                 REPORTS
               </div>
@@ -2265,9 +2279,12 @@ app.use((req, res, next) => {
                     </div>
                   </div>
                   <div style="display:grid;grid-auto-flow:column;grid-gap:0;width:100%;">
-                    <button class="dashboardreportfree" name="regno" type="submit" form="dashboardreportsbuttons" style="display:grid;justify-items:center;align-items:center;padding:0.5rem;margin:0.5rem;font-weight:bold;min-width:200;background-color:#f9d441;cursor:pointer;border:0;">VIEW FREE REPORT</button>
-                    <button class="dashboardreportbasic" name="regno" type="submit" form="dashboardreportsbuttons" style="display:grid;justify-items:center;align-items:center;padding:0.5rem;margin:0.5rem;font-weight:bold;min-width:200;background-color:#f9d441;cursor:pointer;border:0;">VIEW BASIC REPORT</button>
-                    <button class="dashboardreportfull" name="regno" type="submit" form="dashboardreportsbuttons" style="display:grid;justify-items:center;align-items:center;padding:0.5rem;margin:0.5rem;font-weight:bold;min-width:200;background-color:#f9d441;cursor:pointer;border:0;">VIEW FULL REPORT</button>
+                    <button class="dashboardreportfree" name="regno" type="submit" form="dashboardreportsbuttons" style="display:grid;justify-items:center;align-items:center;padding:0.5rem;margin:0.5rem;font-weight:bold;min-width:200;background-color:#f9d441;cursor:pointer;border:0;">VIEW FREE REPORT
+                    </button>
+                    <button class="dashboardreportbasic" name="regno" type="submit" form="dashboardreportsbuttons" style="display:grid;justify-items:center;align-items:center;padding:0.5rem;margin:0.5rem;font-weight:bold;min-width:200;background-color:#f9d441;cursor:pointer;border:0;">VIEW BASIC REPORT
+                    </button>
+                    <button class="dashboardreportfull" name="regno" type="submit" form="dashboardreportsbuttons" style="display:grid;justify-items:center;align-items:center;padding:0.5rem;margin:0.5rem;font-weight:bold;min-width:200;background-color:#f9d441;cursor:pointer;border:0;">VIEW FULL REPORT
+                    </button>
                   </div>
                 </div>
               </div>
@@ -3420,8 +3437,8 @@ app.use((req, res, next) => {
                 <div style="background:#f9d441;color:black;padding:0.5rem;font-size:1.5rem;">
                   BASIC REPORT
                 </div>
-                <div style="display:grid;align-items:center;justify-items:center;background:#2f2e2a;color:#BB86FC;font-size:1.25rem;padding:0.5rem;cursor:pointer;text-align:center;" onclick="window.location.href='/report#packagessection'">
-                  BUY BASIC REPORT. CLICK TO COMPARE PACKAGES.
+                <div style="display:grid;align-items:center;justify-items:center;background:#2f2e2a;padding:0.5rem;" onclick="window.location.href='/account/login'">
+                  <input name="paymentbasic" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER BASIC REPORT (£2.49 ONLY)">
                 </div>
               </div>
               <div class="reportfull" style="display:grid;grid-gap: 0.5rem;">
@@ -3966,8 +3983,8 @@ app.use((req, res, next) => {
                 <div style="background:#f9d441;color:black;padding:0.5rem;font-size:1.5rem;">
                   FULL REPORT
                 </div>
-                <div style="display:grid;align-items:center;justify-items:center;background:#2f2e2a;color:#BB86FC;font-size:1.25rem;padding:0.5rem;cursor:pointer;text-align:center;" onclick="window.location.href='/report#packagessection'">
-                  BUY FULL REPORT. CLICK TO COMPARE PACKAGES.
+                <div style="display:grid;align-items:center;justify-items:center;background:#2f2e2a;padding:0.5rem;" onclick="window.location.href='/account/login'">
+                  <input name="paymentbasic" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER FULL REPORT (£7.99 ONLY)">
                 </div>
               </div>
               <div id="packagessection" class="reportprinthide reportpackages" style="display:grid;justify-self:center;">
