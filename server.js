@@ -151,15 +151,22 @@ app.use((req, res, next) => {
       }
     },
     dashboard: {
-      profile: {
-        name: null,
-        email: null,
-        contact: null,
-        password: null,
-        message: {
-          text: null,
-          color: null
-        }
+      reports: {
+        add: {
+          message: {
+            text: "",
+            color: ""
+          }
+        },
+        search: {
+          regno: null,
+          message: {
+            text: "",
+            color: ""
+          }
+        },
+        cars: {},
+        page: 1
       },
       balance: {
         basic: 0,
@@ -170,10 +177,16 @@ app.use((req, res, next) => {
         },
         transactions: {}
       },
-      reports: {
-        cars: {},
-        page: 1
-      },
+      profile: {
+        name: null,
+        email: null,
+        contact: null,
+        password: null,
+        message: {
+          text: null,
+          color: null
+        }
+      }
     },
     admin: {
       root: null,
@@ -383,29 +396,63 @@ app.use("/account/logout", (req, res, next) => {
 
 //dashboard page rest endpoint
 app.use("/dashboard/reports", (req, res, next) => {
+  req.dom.page = "/dashboard/reports";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
+  req.dom.dashboard.reports.add.message.text = null;//initialization
+  req.dom.dashboard.reports.search.regno = null;//initialization
+  req.dom.dashboard.reports.search.message.text = null;//initialization
+  if(req.body.dashboardreportsregno) req.body.dashboardreportsregno = req.body.dashboardreportsregno.toUpperCase();
+  if(req.body.dashboardreportssearch) req.body.dashboardreportssearch = req.body.dashboardreportssearch.toUpperCase();
+  
+
   if (!req.dom.account.login.status) {
     res.redirect("/account/login");
     req.sent = 1;//end express session
+    next();
   }
 
   if (req.body.dashboardreportsaddcar) {
-    req.dom.dashboard.reports.cars[req.body.dashboardreportsregno] = {
-      "timestamp": Date.now(),
-      "basic": 0,
-      "full": 0
-    };
+    superagent
+      .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
+      .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
+      .set('Content-Type', 'application/json')
+      .send({ registrationNumber: `${req.body.dashboardreportsregno}` })
+      .then(res => {
+        req.dom.dashboard.reports.cars[req.body.dashboardreportsregno] = {
+          "timestamp": Date.now(),
+          "basic": 0,
+          "full": 0
+        };
+        next();
+      })
+      .catch(err => {
+        console.log(err);
+        req.dom.dashboard.reports.add.message.text = `ERROR! This Vehicle Registration Number does not exist: ${req.body.dashboardreportsregno}. Please Add Correct Vehicle Number Or Contact Us For Support.`;
+        req.dom.dashboard.reports.add.message.color = "#CF6679";
+        next();
+      });
   }
 
   if (req.body.dashboardreportssearch) {
-    req.dom.dashboard.reports.search = req.body.dashboardreportssearch;
-    // delete req.body.dashboardreportssearch;//req.body should show it but it will not. This line helps remove the search filter on page refresh.
+    superagent
+      .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
+      .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
+      .set('Content-Type', 'application/json')
+      .send({ registrationNumber: `${req.body.dashboardreportssearch}` })
+      .then(res => {
+        req.dom.dashboard.reports.search.regno = req.body.dashboardreportssearch;
+        next();
+      })
+      .catch(err => {
+        console.log(err);
+        req.dom.dashboard.reports.search.message.text = `ERROR! This Vehicle Registration Number does not exist: ${req.body.dashboardreportssearch}. Please Add Correct Vehicle Number Or Contact Us For Support.`;
+        req.dom.dashboard.reports.search.message.color = "#CF6679";
+        next();
+      });
   }
-  else {
-    req.dom.dashboard.reports.search = null;
+  
+  if(!req.body.dashboardreportsaddcar && !req.body.dashboardreportssearch){
+    next();
   }
-
-  req.dom.page = "/dashboard/reports";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
 });
 
 app.use("/dashboard/balance", (req, res, next) => {
@@ -1223,13 +1270,25 @@ app.use((req, res, next) => {
               window.document.querySelector(".accountresetmessage").innerHTML = dom.account.reset.message.text;
               window.document.querySelector(".accountresetmessage").style.color = dom.account.reset.message.color;
             }
+            
+            if (dom.dashboard.reports.add.message.text) {
+              window.document.querySelector(".dashboardaddmessage").style.display = "grid";
+              window.document.querySelector(".dashboardaddmessage").innerHTML = dom.dashboard.reports.add.message.text;
+              window.document.querySelector(".dashboardaddmessage").style.color = dom.dashboard.reports.add.message.color;
+            }
+            
+            if (dom.dashboard.reports.search.message.text) {
+              window.document.querySelector(".dashboardsearchmessage").style.display = "grid";
+              window.document.querySelector(".dashboardsearchmessage").innerHTML = dom.dashboard.reports.search.message.text;
+              window.document.querySelector(".dashboardsearchmessage").style.color = dom.dashboard.reports.search.message.color;
+            }
           
             if (dom.dashboard.reports.cars && Object.values(dom.dashboard.reports.cars).length) {
               let cars = dom.dashboard.reports.cars;
-              if (dom.dashboard.reports.search) {
-                let searchtemp = cars[dom.dashboard.reports.search];
+              if (dom.dashboard.reports.search.regno) {
+                let searchtemp = cars[dom.dashboard.reports.search.regno];
                 cars = {};
-                cars[dom.dashboard.reports.search] = searchtemp;
+                cars[dom.dashboard.reports.search.regno] = searchtemp;
               }
               window.document.querySelector(".dashboardreportsrecords").innerHTML = "";
               Object.keys(cars).sort((a, b) => { return cars[b].timestamp - cars[a].timestamp }).forEach(function (key) {
@@ -1714,7 +1773,7 @@ app.use((req, res, next) => {
                 </div>
                 <div style="display:grid;justify-items:stretch;align-self:end;justify-content:center;font-size:2rem;margin-top:0.5rem;text-align:center;margin:0.5rem;">
                   <div>
-                    Get An Instant Car History Check Now
+                    Get An Instant Vehicle History Check Now
                   </div>
                 </div>
                 <div>
@@ -1723,13 +1782,20 @@ app.use((req, res, next) => {
                     <form id="vehiclereg" action="/report" method="post">
                     </form>
                     <div style="display:grid;justify-items:center;">
-                      <input type="text" name="regno" form="vehiclereg" placeholder="Enter Reg" class="form" pattern="^[a-zA-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." required style="background-color:#f9d441;padding:0.1rem;font-size:3rem;text-align:center;outline:none;border:0;width:100%;max-width:22rem;text-transform:uppercase;">
+                      <input type="text" name="regno" form="vehiclereg" placeholder="Enter Reg" class="homebannerbginput form" required style="background-color:#f9d441;padding:0.1rem;font-size:3rem;text-align:center;outline:none;border:0;width:100%;max-width:22rem;text-transform:uppercase;">
                     </div>
                     <div style="display:grid;justify-items:center;">
-                      <input type="submit" form="vehiclereg" style="background-color:#66d469;font-size:3rem;font-weight:bold;border:0;width:100%;max-width:22rem;cursor:pointer;" value="  Go  ">
+                      <button type="submit" form="vehiclereg" style="background-color:#66d469;font-size:3rem;font-weight:bold;border:0;width:100%;max-width:22rem;cursor:pointer;" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.homebannerbginput').value)) {
+                      window.document.querySelector('.homebannerbgmessage').style.display = 'grid';
+                      window.document.querySelector('.homebannerbgmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
+                      window.document.querySelector('.homebannerbgmessage').style.color = '#ef5350';
+                      window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold';
+                      return false;
+                    }">
+                      GO
                     </div>
                 </div>
-                <div>
+                <div class="homebannerbgmessage" style="display:none;padding:0.5rem 0.5rem 0 0.5rem;">
                 </div>
               </div>
             </div>
@@ -2218,6 +2284,10 @@ app.use((req, res, next) => {
               </div>
             </div>
             <div class="dashboardreports dashboardrecord grid2" id="dashboardreports" style="display:none;grid-auto-flow:row;justify-items:center;margin:0.5rem;">
+              <form id="dashboardreportsadd" action="/dashboard/reports" method="post">
+              </form>
+              <form id="dashboardreportssearch" action="/dashboard/reports" method="post">
+              </form>
               <form id="dashboardreportsbuttons" action="/report" method="post">
               </form>
               <form id="dashboardreportsbuttonsbalance" action="/dashboard/balance" method="post">
@@ -2225,28 +2295,38 @@ app.use((req, res, next) => {
               <div class="dashboardreportstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;font-weight:bold;font-size:1.5rem;">
                 REPORTS
               </div>
-              <div class="dashboardadd grid" style="display:grid;justify-content:start;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;font-weight:bold;width:100%;">
-                <form id="dashboardreportsadd" action="/dashboard/reports" method="post">
-                </form>
-                <div style="display:grid;justify-content:stretch;grid-template-columns:auto auto;">
+              <div class="dashboardadd" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0 0.5rem;width:100%;">
+                <div style="display:grid;grid-auto-flow:column;justify-content:start;">
                   <div style="display:grid;justify-items:start;margin:0 0.5rem;">
-                    <input type="text" name="dashboardreportsregno" form="dashboardreportsadd" placeholder="Enter Registration Number" class="form" pattern="^[A-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." style="border:0;padding:0.5rem;width:100%;">
+                    <input type="text" name="dashboardreportsregno" form="dashboardreportsadd" placeholder="Enter Reg" class="dashboardaddinput form" style="border:0;padding:0.5rem;width:100%;text-transform:uppercase;">
                   </div>
                   <div style="display:grid;justify-items:center;margin:0 0.5rem;">
-                    <button type="submit" form="dashboardreportsadd" name="dashboardreportsaddcar" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1">ADD</button>
+                    <button type="submit" form="dashboardreportsadd" name="dashboardreportsaddcar" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.dashboardaddinput').value)) {
+                      window.document.querySelector('.dashboardaddmessage').style.display = 'grid';
+                      window.document.querySelector('.dashboardaddmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
+                      window.document.querySelector('.dashboardaddmessage').style.color = '#CF6679';
+                      return false;
+                    }">ADD</button>
                   </div>
                 </div>
+                <div class="dashboardaddmessage" style="display:none;color:red;padding:0.5rem 0.5rem 0 0.5rem;">
+                </div>
               </div>
-              <div class="dashboardsearch grid" style="display:grid;justify-content:start;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;font-weight:bold;width:100%;">
-                <form id="dashboardreportssearch" action="/dashboard/reports" method="post">
-                </form>
-                <div style="display:grid;justify-content:stretch;grid-template-columns:auto auto;">
+              <div class="dashboardsearch" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0 0.5rem;width:100%;">
+                <div style="display:grid;grid-auto-flow:column;justify-content:start;">
                   <div style="display:grid;justify-items:start;margin:0 0.5rem;">
-                    <input type="text" name="dashboardreportssearch" form="dashboardreportssearch" placeholder="Enter Registration Number" class="form" pattern="^[A-Z0-9]{7}$" title="Exact 7 alphanumeric characters required in capital." style="border:0;padding:0.5rem;width:100%;">
+                    <input type="text" name="dashboardreportssearch" form="dashboardreportssearch" placeholder="Enter Reg" class="dashboardsearchinput form" style="border:0;padding:0.5rem;width:100%;text-transform:uppercase;" >
                   </div>
                   <div style="display:grid;justify-items:center;margin:0 0.5rem;">
-                    <button type="submit" form="dashboardreportssearch" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1">SEARCH</button>
+                    <button type="submit" form="dashboardreportssearch" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.dashboardsearchinput').value)) {
+                      window.document.querySelector('.dashboardsearchmessage').style.display = 'grid';
+                      window.document.querySelector('.dashboardsearchmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
+                      window.document.querySelector('.dashboardsearchmessage').style.color = '#CF6679';
+                      return false;
+                    }">SEARCH</button>
                   </div>
+                </div>
+                <div class="dashboardsearchmessage" style="display:none;color:red;padding:0.5rem 0.5rem 0 0.5rem;">
                 </div>
               </div>
               <div class="dashboardbalances" style="display:grid;justify-content:start;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;width:100%;">
@@ -2322,7 +2402,7 @@ app.use((req, res, next) => {
               <div class="dashboardbalancevalues grid2" style="display:grid;grid-auto-flow:row;grid-gap:0;justify-content:stretch;background:#2f2e2a;font-size:1rem;width:100%;">
                 <div style="display:grid;grid-auto-flow:column;grid-gap:0.5rem;justify-content:start;align-self:center;justify-self:start;color:white;margin:0.5rem;">
                   <div>
-                    BASIC REPORT:
+                    BASIC REPORT CREDITS:
                   </div>
                   <div class="dashboardbalancebasic">
                     0
@@ -2330,7 +2410,7 @@ app.use((req, res, next) => {
                 </div>
                 <div style="display:grid;grid-auto-flow:column;grid-gap:0.5rem;justify-content:start;align-self:center;justify-self:start;color:white;margin:0.5rem;">
                   <div>
-                    FULL REPORT:
+                    FULL REPORT CREDITS:
                   </div>
                   <div class="dashboardbalancefull">
                     0
