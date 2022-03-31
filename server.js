@@ -219,36 +219,42 @@ app.use((req, res, next) => {
   req.cookies.user = decrypt(req.cookies.user);
 
   if (req.body.accountloginemail) {
+    req.body.accountloginemail = req.body.accountloginemail.toUpperCase();
     req.cookies.user = req.body.accountloginemail;
     res.cookie("user", encrypt(req.body.accountloginemail));
     res.cookie("cookie", 0);
   }
 
   if (req.body.accountregisteremail) {
+    req.body.accountregisteremail = req.body.accountregisteremail.toUpperCase();
     req.cookies.user = req.body.accountregisteremail;
     res.cookie("user", encrypt(req.body.accountregisteremail));
     res.cookie("cookie", 0);
   }
 
   if (req.query.accountregisterconfirm) {
+    req.query.accountregisterconfirm = req.query.accountregisterconfirm.toUpperCase();
     req.cookies.user = req.query.accountregisterconfirm;
     res.cookie("user", encrypt(req.query.accountregisterconfirm));
     res.cookie("cookie", 0);
   }
 
   if (req.body.accountresetemail) {
+    req.body.accountresetemail = req.body.accountresetemail.toUpperCase();
     req.cookies.user = req.body.accountresetemail;
     res.cookie("user", encrypt(req.body.accountresetemail));
     res.cookie("cookie", 0);
   }
 
   if (req.query.accountresetconfirm) {
+    req.query.accountresetconfirm = req.query.accountresetconfirm.toUpperCase();
     req.cookies.user = req.query.accountresetconfirm;
     res.cookie("user", encrypt(req.query.accountresetconfirm));
     res.cookie("cookie", 0);
   }
 
   if (req.url == "/webhook" && req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email) {
+    req.body.data.object.billing_details.email = req.body.data.object.billing_details.email.toUpperCase();
     req.cookies.user = req.body.data.object.billing_details.email;
   }
 
@@ -281,23 +287,23 @@ app.get("/", (req, res, next) => {// .get is required so it does not mess by set
 });
 
 app.use("/account/login", (req, res, next) => {
+  if(req.body.accountloginemail) req.body.accountloginemail = req.body.accountloginemail.toUpperCase();
+  
   if (req.dom.account.login.status) {
     res.redirect("/dashboard/reports");
     req.sent = 1;//end express session
   }
 
-  // if (!req.cookies.session.includes("@"))
-
   req.dom.account.login.message.text = null;//initialization
 
-  if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() <= req.dom.account.login.last + 10000) {
-    req.dom.account.login.message.text = "You have done too many login attempts in a short span of time, please wait for 10 seconds before logging in again.";
+  if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() <= req.dom.account.login.last + 1000) {
+    req.dom.account.login.message.text = "You have performed too many login attempts in a short span of time, please wait some time before logging in again.";
     req.dom.account.login.message.color = "#B00020";
   }
 
-  if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() >= req.dom.account.login.last + 10000) {
+  if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() >= req.dom.account.login.last + 1000) {
     if (req.body.accountloginpassword != decrypt(req.dom.dashboard.profile.password)) {
-      req.dom.account.login.message.text = "You entered wrong email or password, please re-enter the correct email/password after 10 seconds.";
+      req.dom.account.login.message.text = "You have entered wrong email or password, please re-enter the correct email/password.";
       req.dom.account.login.message.color = "#B00020";
     }
     if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && !req.dom.account.login.active) {
@@ -325,6 +331,9 @@ app.use("/account/login", (req, res, next) => {
 });
 
 app.use("/account/register", (req, res, next) => {
+  if(req.body.accountregisteremail) req.body.accountregisteremail = req.body.accountregisteremail.toUpperCase();
+  if(req.body.accountregistername) req.body.accountregistername = req.body.accountregistername.toUpperCase();
+  
   if (req.dom.account.login.status) {
     res.redirect("/dashboard/reports");
     req.sent = 1;//end express session
@@ -358,6 +367,8 @@ app.use("/account/register", (req, res, next) => {
 });
 
 app.use("/account/reset", (req, res, next) => {
+  if(req.body.accountresetemail) req.body.accountresetemail = req.body.accountresetemail.toUpperCase();  
+  
   if (req.dom.account.login.status) {
     res.redirect("/dashboard/reports");
     req.sent = 1;//end express session
@@ -1188,14 +1199,20 @@ app.use((req, res, next) => {
             if(dom.page == "/account/login"){
               window.document.querySelector(".account").style.display = "grid";
               window.document.querySelector(".accountlogin").style.display = "grid";
+              window.document.querySelector(".accountmenulogin").style.color = "#2f2e2a";
+              window.document.querySelector(".accountmenulogin").style.backgroundColor = "#f9d441";
             }
             if(dom.page == "/account/register"){
               window.document.querySelector(".account").style.display = "grid";
               window.document.querySelector(".accountregister").style.display = "grid";
+              window.document.querySelector(".accountmenuregister").style.color = "#2f2e2a";
+              window.document.querySelector(".accountmenuregister").style.backgroundColor = "#f9d441";
             }
             if(dom.page == "/account/reset"){
               window.document.querySelector(".account").style.display = "grid";
               window.document.querySelector(".accountreset").style.display = "grid";
+              window.document.querySelector(".accountmenureset").style.color = "#2f2e2a";
+              window.document.querySelector(".accountmenureset").style.backgroundColor = "#f9d441";
             }
             if(dom.page == "/dashboard/reports"){
               window.document.querySelector(".dashboard").style.display = "grid";
@@ -2148,13 +2165,13 @@ app.use((req, res, next) => {
           </div>
           <div class="account" style="display:none;justify-self:center;">
             <div class="accountmenu grid2" style="display:grid;justify-content:stretch;grid-template-columns:auto auto auto;white-space:nowrap;width:100%;margin:0.5rem 0;">
-              <div style="display:grid;justify-items:center;align-items:center;background-color:#2f2e2a;color:white;padding:0.5rem;margin-right:0.5rem;cursor:pointer;font-weight:bold;" onclick="window.location.href='/account/login'">
+              <div class="accountmenulogin" style="display:grid;justify-items:center;align-items:center;background-color:#2f2e2a;color:white;padding:0.5rem;margin-right:0.5rem;cursor:pointer;font-weight:bold;" onclick="window.location.href='/account/login'">
                   LOGIN
               </div>
-              <div style="display:grid;justify-items:center;align-items:center;background-color:#2f2e2a;color:white;padding:0.5rem;margin-right:0.5rem;cursor:pointer;font-weight:bold;" onclick="window.location.href='/account/register'">
+              <div class="accountmenuregister" style="display:grid;justify-items:center;align-items:center;background-color:#2f2e2a;color:white;padding:0.5rem;margin-right:0.5rem;cursor:pointer;font-weight:bold;" onclick="window.location.href='/account/register'">
                   REGISTER
               </div>
-              <div style="display:grid;justify-items:center;align-items:center;background-color:#2f2e2a;color:white;padding:0.5rem;cursor:pointer;font-weight:bold;" onclick="window.location.href='/account/reset'">
+              <div class="accountmenureset" style="display:grid;justify-items:center;align-items:center;background-color:#2f2e2a;color:white;padding:0.5rem;cursor:pointer;font-weight:bold;" onclick="window.location.href='/account/reset'">
                   RESET
               </div>
             </div>
@@ -2176,6 +2193,9 @@ app.use((req, res, next) => {
                 <div style="display:grid;justify-items:stretch;width:227px;">
                   <input form="accountlogin" type="submit" placeholder="Login" value="Login" style="background-color:#f9d441;padding:1rem;border:0;outline:none;text-align: center;font-size:1rem;font-weight:bold;box-sizing:border-box;cursor:pointer;width:100%;border-radius:2rem;">
                 </div>
+                <div class="accountloginmessage" style="display:none;grid-template-rows:repeat(auto-fit,minmax(0,auto));background:#d6d6d6;justify-self:center;margin:0 0.5rem;padding:0 0.5rem;font-size:0.9rem;color:red;font-weight:bold;text-align:justify;">
+                  You entered wrong email or password, please re-enter the correct email/password.
+                </div>  
                 <div style="margin-bottom:1rem;">
                   <a href="/account/reset">
                     Did You Forgot Your password?
@@ -2189,9 +2209,6 @@ app.use((req, res, next) => {
                     Register
                   </div>
                 </div>
-              </div>
-              <div class="accountloginmessage" style="display:none;grid-template-rows:repeat(auto-fit,minmax(0,auto));background:#d6d6d6;justify-self:center;margin:0.5rem;padding:0.5rem;font-size:0.9rem;color:red;font-weight:bold;text-align:justify;">
-                You entered wrong email or password, please re-enter the correct email/password.
               </div>
             </div>
             <div class="accountregister register" style="display:none;grid-template-rows:repeat(auto-fit,minmax(0,auto));background:#d6d6d6;justify-self:center;padding:0.5rem;width:100%;">
@@ -2295,58 +2312,75 @@ app.use((req, res, next) => {
               <div class="dashboardreportstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;font-weight:bold;font-size:1.5rem;">
                 REPORTS
               </div>
-              <div class="dashboardadd" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0 0.5rem;width:100%;">
-                <div style="display:grid;grid-auto-flow:column;justify-content:start;">
-                  <div style="display:grid;justify-items:start;margin:0 0.5rem;">
-                    <input type="text" name="dashboardreportsregno" form="dashboardreportsadd" placeholder="Enter Reg" class="dashboardaddinput form" style="border:0;padding:0.5rem;width:100%;text-transform:uppercase;">
+              <div class="dashboardreportsbody" style="display:grid;width:100%;background:#2f2e2a;grid-auto-flow:column;">
+                <div class="dashboardaddsearch" style="display:grid;width:100%;align-content:start;">
+                  <div class="dashboardadd" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0 0;width:100%;">
+                    <div style="display:grid;grid-auto-flow:column;justify-content:start;">
+                      <div style="display:grid;justify-items:start;margin:0 0.5rem;">
+                        <input type="text" name="dashboardreportsregno" form="dashboardreportsadd" placeholder="Enter Reg" class="dashboardaddinput form" style="border:0;padding:0.5rem;width:100%;text-transform:uppercase;">
+                      </div>
+                      <div style="display:grid;justify-items:center;margin:0 0.5rem;">
+                        <button type="submit" form="dashboardreportsadd" name="dashboardreportsaddcar" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.dashboardaddinput').value)) {
+                          window.document.querySelector('.dashboardaddmessage').style.display = 'grid';
+                          window.document.querySelector('.dashboardaddmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
+                          window.document.querySelector('.dashboardaddmessage').style.color = '#CF6679';
+                          return false;
+                        }">ADD</button>
+                      </div>
+                    </div>
+                    <div class="dashboardaddmessage" style="display:none;color:red;padding:0.5rem 0.5rem 0 0.5rem;">
+                    </div>
                   </div>
-                  <div style="display:grid;justify-items:center;margin:0 0.5rem;">
-                    <button type="submit" form="dashboardreportsadd" name="dashboardreportsaddcar" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.dashboardaddinput').value)) {
-                      window.document.querySelector('.dashboardaddmessage').style.display = 'grid';
-                      window.document.querySelector('.dashboardaddmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
-                      window.document.querySelector('.dashboardaddmessage').style.color = '#CF6679';
-                      return false;
-                    }">ADD</button>
+                  <div class="dashboardsearch" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0.5rem 0;width:100%;">
+                    <div style="display:grid;grid-auto-flow:column;justify-content:start;">
+                      <div style="display:grid;justify-items:start;margin:0 0.5rem;">
+                        <input type="text" name="dashboardreportssearch" form="dashboardreportssearch" placeholder="Enter Reg" class="dashboardsearchinput form" style="border:0;padding:0.5rem;width:100%;text-transform:uppercase;" >
+                      </div>
+                      <div style="display:grid;justify-items:center;margin:0 0.5rem;">
+                        <button type="submit" form="dashboardreportssearch" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.dashboardsearchinput').value)) {
+                          window.document.querySelector('.dashboardsearchmessage').style.display = 'grid';
+                          window.document.querySelector('.dashboardsearchmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
+                          window.document.querySelector('.dashboardsearchmessage').style.color = '#CF6679';
+                          return false;
+                        }">SEARCH</button>
+                      </div>
+                    </div>
+                    <div class="dashboardsearchmessage" style="display:none;color:red;padding:0.5rem 0.5rem 0 0.5rem;">
+                    </div>
                   </div>
                 </div>
-                <div class="dashboardaddmessage" style="display:none;color:red;padding:0.5rem 0.5rem 0 0.5rem;">
-                </div>
-              </div>
-              <div class="dashboardsearch" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0 0.5rem;width:100%;">
-                <div style="display:grid;grid-auto-flow:column;justify-content:start;">
-                  <div style="display:grid;justify-items:start;margin:0 0.5rem;">
-                    <input type="text" name="dashboardreportssearch" form="dashboardreportssearch" placeholder="Enter Reg" class="dashboardsearchinput form" style="border:0;padding:0.5rem;width:100%;text-transform:uppercase;" >
+                <div class="dashboardbalances" style="display:grid;grid-auto-flow:column;justify-content:end;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;width:100%;">
+                  <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;">
+                    <div style="display:grid;align-self:end;">
+                      <img src="/basicreporticon.webp" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
+                    </div>
+                    <div class="dashboardreportbalancebasic" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
+                        0
+                    </div>
+                    <div style="display:grid;align-self:end;">
+                      BASIC REPORT CREDITS
+                    </div>
                   </div>
-                  <div style="display:grid;justify-items:center;margin:0 0.5rem;">
-                    <button type="submit" form="dashboardreportssearch" style="background-color:#f9d441;border:0;cursor:pointer;padding:0.5rem;font-weight:bold;width:120px;" value="1" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.dashboardsearchinput').value)) {
-                      window.document.querySelector('.dashboardsearchmessage').style.display = 'grid';
-                      window.document.querySelector('.dashboardsearchmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
-                      window.document.querySelector('.dashboardsearchmessage').style.color = '#CF6679';
-                      return false;
-                    }">SEARCH</button>
-                  </div>
-                </div>
-                <div class="dashboardsearchmessage" style="display:none;color:red;padding:0.5rem 0.5rem 0 0.5rem;">
-                </div>
-              </div>
-              <div class="dashboardbalances" style="display:grid;justify-content:start;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;width:100%;">
-                <div style="padding:0 0.5rem;color:#CF9AFF;">
-                    You have 
-                    <div class="dashboardreportbalancebasic" style="display:inline;">
-                      0
+                  <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;">
+                    <div style="display:grid;align-self:end;">
+                      <img src="/fullreporticon.png" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
+                    </div>
+                    <div class="dashboardreportbalancefull" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
+                        0
                     </div> 
-                      Basic Credits and 
-                    <div class="dashboardreportbalancefull" style="display:inline;">
-                      0
-                    </div> 
-                    Full Credits. 
-                </div>
-                <div style="padding:0 0.5rem;color:#CF9AFF;">
-                  Note: Disabled View Report Buttons means you need to add respective Credits. To add Credits, <a href="/dashboard/balance">click here</a>.
+                    <div style="display:grid;align-self:end;">
+                      FULL REPORT CREDITS
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="dashboardreportsrecordstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;margin-top:1rem;font-weight:bold;font-size:1.5rem;">
                 RECORDS
+              </div>
+              <div style="width:100%;">
+                <div style="padding:0.5rem;color:#CF9AFF;background:#2f2e2a;border-bottom:0.1rem solid gray;width:100%;font-size:1.1rem;">
+                  Note: Disabled View Report Buttons means you need to add respective Credits. To add Credits, <a href="/dashboard/balance">click here</a>.
+                </div>
               </div>
               <div class="dashboardreportsrecordtemplate" style="display:none;">
                 <div class="grid" style="display:grid;grid-gap:0;justify-content:space-between;background:#2f2e2a;font-size:1rem;width:100%;border-bottom:0.1rem solid gray;">
