@@ -2626,7 +2626,7 @@ app.use((req, res, next) => {
                     New Password: 
                   </div>
                   <div>
-                    <input class="dashboardprofilepasswordnew" form="dashboardprofile" type="password" name="dashboardprofilepasswordnew" placeholder="New Password" required style="width:100%;padding:0.5rem;">
+                    <input class="dashboardprofilepasswordnew" form="dashboardprofile" type="password" name="dashboardprofilepasswordnew" placeholder="New Password" style="width:100%;padding:0.5rem;">
                   </div>
                 </div>
                 <div style="display:grid;justify-content:stretch;padding:0 0.5rem 0.5rem 0.5rem;">
