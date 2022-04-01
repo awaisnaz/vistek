@@ -590,12 +590,12 @@ app.use("/dashboard/balance", (req, res, next) => {
 });
 
 app.use("/dashboard/profile", (req, res, next) => {
+  if (!req.body.dashboardprofilesubmit) req.dom.dashboard.profile.message.text = null;//initialization
+
   if (!req.dom.account.login.status) {
     res.redirect("/account/login");
     req.sent = 1;//end express session
   }
-
-  if (!req.body.dashboardprofilesubmit) req.dom.dashboard.profile.message.text = null;
   
   if (req.body.dashboardprofilesubmit && req.dom.dashboard.profile.password != encrypt(req.body.dashboardpasswordcurrent)) {
     req.dom.dashboard.profile.message.text = "Your changes have not been saved. Please enter the correct current password.";
@@ -604,7 +604,7 @@ app.use("/dashboard/profile", (req, res, next) => {
   
   if (req.body.dashboardprofilesubmit && req.dom.dashboard.profile.password == encrypt(req.body.dashboardpasswordcurrent)) {
     req.dom.dashboard.profile.contact = req.body.dashboardprofilecontactnew;
-    req.dom.dashboard.profile.password = encrypt(req.body.dashboardprofilepasswordnew);
+    if(req.body.dashboardprofilepasswordnew) req.dom.dashboard.profile.password = encrypt(req.body.dashboardprofilepasswordnew);
     req.dom.dashboard.profile.message.text = "Account details changed successfully.";
     req.dom.dashboard.profile.message.color = "#BB86FC";
     sendemail(req.cookies.user, "Your account details have been changed successfully at VISTEK. If it was not you, please contact us.");
@@ -2580,7 +2580,7 @@ app.use((req, res, next) => {
               </div>
               <div class="grid2" style="display:grid;grid-gap:0;grid-auto-flow:row;justify-content:stretch;background:#2f2e2a;font-size:1rem;width:100%;">
                 <div style="display:grid;grid-auto-flow:column;justify-content:start;align-items:end;padding:0.5rem;">
-                  <div style="display:grid;align-self:center;width:5rem;color:white;">
+                  <div style="display:grid;align-self:center;width:9rem;color:white;">
                     Name: 
                   </div>
                   <div>
@@ -2588,7 +2588,7 @@ app.use((req, res, next) => {
                   </div>
                 </div>
                 <div style="display:grid;grid-auto-flow:column;justify-content:start;align-items:end;padding:0 0.5rem 0.5rem 0.5rem;">
-                  <div style="display:grid;align-self:center;width:5rem;color:white;">
+                  <div style="display:grid;align-self:center;width:9rem;color:white;">
                     Email: 
                   </div>
                   <div>
@@ -2597,7 +2597,7 @@ app.use((req, res, next) => {
                   </div>
                 </div>
                 <div style="display:grid;grid-auto-flow:column;justify-content:start;align-items:end;padding:0 0.5rem 0.5rem 0.5rem;">
-                  <div style="display:grid;align-self:center;width:5rem;color:white;">
+                  <div style="display:grid;align-self:center;width:9rem;color:white;">
                     Contact: 
                   </div>
                   <div>
@@ -2605,26 +2605,38 @@ app.use((req, res, next) => {
                   </div>
                 </div>
                 <div style="display:grid;grid-auto-flow:column;justify-content:start;align-items:end;padding:0 0.5rem 0.5rem 0.5rem;">
-                  <div style="display:grid;align-self:center;width:5rem;color:white;">
-                    Current Password: 
+                  <div style="display:grid;grid-auto-flow:column;align-self:center;width:9rem;color:white;">
+                    <div>
+                      Current Password
+                    </div>
+                    <div style="color:#CF6679;">
+                      *
+                    </div>
+                    <div>
+                      :
+                    </div>
+                     
                   </div>
                   <div>
-                    <input class="dashboardpasswordcurrent" form="dashboardprofile" type="password" name="dashboardpasswordcurrent" placeholder="Enter Current Password" required style="width:100%;padding:0.5rem;">
+                    <input class="dashboardpasswordcurrent" form="dashboardprofile" type="password" name="dashboardpasswordcurrent" placeholder="Current Password" required style="width:100%;padding:0.5rem;">
                   </div>
                 </div>
                 <div style="display:grid;grid-auto-flow:column;justify-content:start;align-items:end;padding:0 0.5rem 0.5rem 0.5rem;">
-                  <div style="display:grid;align-self:center;width:5rem;color:white;">
+                  <div style="display:grid;align-self:center;width:9rem;color:white;">
                     New Password: 
                   </div>
                   <div>
-                    <input class="dashboardprofilepasswordnew" form="dashboardprofile" type="password" name="dashboardprofilepasswordnew" placeholder="Enter New Password" required style="width:100%;padding:0.5rem;">
+                    <input class="dashboardprofilepasswordnew" form="dashboardprofile" type="password" name="dashboardprofilepasswordnew" placeholder="New Password" required style="width:100%;padding:0.5rem;">
                   </div>
                 </div>
                 <div style="display:grid;justify-content:stretch;padding:0 0.5rem 0.5rem 0.5rem;">
-                  <input type="submit" name="dashboardprofilesubmit" form="dashboardprofile" value="EDIT AND SUBMIT CHANGES" style="display:grid;justify-items:center;align-items:center;background-color:#f9d441;padding:0.5rem;cursor:pointer;font-weight:bold;border:0;max-width:320px;">
+                  <input type="submit" name="dashboardprofilesubmit" form="dashboardprofile" value="EDIT AND SUBMIT CHANGES" style="display:grid;justify-items:center;align-items:center;background-color:#f9d441;padding:0.5rem;cursor:pointer;font-weight:bold;border:0;max-width:333px;">
                 </div>
                 <div class="dashboardprofilemessage" style="display:none;grid-auto-flow:column;justify-content:start;align-items:end;padding:0 0.5rem 0.5rem 0.5rem;color:#6200EE;">
                   Account Profile settings changed successfully.
+                </div>
+                <div class="dashboardprofilenote" style="display:grid;grid-auto-flow:column;justify-content:start;align-items:end;padding:0 0.5rem 0.5rem 0.5rem;color:#BB86FC;">
+                  Note: Name and Email can not be changed. Contact Number change is optional. Current Password is required. Leave New password field blank, if password change is not desired.
                 </div>
               </div>
             </div>
