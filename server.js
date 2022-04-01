@@ -1045,6 +1045,14 @@ app.use((req, res, next) => {
             .dashboardmenutitle{
               font-size:1rem;
             }
+           .dashboardreportbalances{
+              grid-auto-flow: row;
+              justify-content: center;
+            }
+            .dashboardbalances{
+              grid-auto-flow: row;
+              justify-content: center;
+            }
             .logo{
               width:64px;
               height:51px;
@@ -1119,6 +1127,14 @@ app.use((req, res, next) => {
             }
             .dashboardmenutitle{
               font-size:1.5rem;
+            }
+            .dashboardreportbalances{
+              grid-auto-flow:column;
+              justify-content: start;
+            }
+           .dashboardbalances{
+              grid-auto-flow:column;
+              justify-content: start;
             }
             .form{
               width:30vw;
@@ -1321,14 +1337,14 @@ app.use((req, res, next) => {
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("form","dashboardreportsbuttonsbalance");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("value","ORDER BASIC REPORT");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "#b39932";
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("onclick","return confirm('Insufficient Balance. Click OK to buy Balance.');");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("onclick","return true;");
                 }
                 if (!dom.dashboard.balance.full && !cars[key].full) {
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("name","dashboardbalanceaddfull");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("form","dashboardreportsbuttonsbalance");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("value","ORDER FULL REPORT");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").style.color = "#b39932";
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("onclick","return confirm('Insufficient Balance. Click OK to buy Balance.');");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("onclick","return true;");
                 }
                 window.document.querySelector(".dashboardreportsrecords").appendChild(dashboardreportsrecordtemplate);
               });
@@ -2316,7 +2332,7 @@ app.use((req, res, next) => {
                 <form id="dashboardreportbalance" action="/dashboard/balance" method="post">
                 </form>
                 <div class="dashboardreportbalancesbalanceadd" style="display:grid;grid-auto-flow:column;">  
-                  <div class="dashboardreportbalances" style="display:grid;grid-auto-flow:column;justify-content:start;grid-gap:0.5rem;background:#2f2e2a;padding:0.5rem;width:100%;">
+                  <div class="dashboardreportbalances" style="display:grid;grid-gap:0.5rem;background:#2f2e2a;padding:0.5rem;width:100%;">
                     <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;background:#3f3e3a;">
                       <div style="display:grid;align-self:end;">
                         <img src="/basicreporticon.webp" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
@@ -2454,7 +2470,7 @@ app.use((req, res, next) => {
                 <form id="dashboardbalance" action="/dashboard/balance" method="post">
                 </form>
                 <div class="dashboardbalancesbalanceadd" style="display:grid;grid-auto-flow:column;">  
-                  <div class="dashboardbalances" style="display:grid;grid-auto-flow:column;justify-content:start;grid-gap:0.5rem;background:#2f2e2a;padding:0.5rem;width:100%;">
+                  <div class="dashboardbalances" style="display:grid;grid-gap:0.5rem;background:#2f2e2a;padding:0.5rem;width:100%;">
                     <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;background:#3f3e3a;">
                       <div style="display:grid;align-self:end;">
                         <img src="/basicreporticon.webp" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
