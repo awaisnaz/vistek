@@ -930,7 +930,7 @@ app.use("/webhook", (req, res, next) => {
     req.dom.dashboard.balance.full = req.dom.dashboard.balance.full + 1;
   }
   if (req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email && req.body.data.object.amount == "1445") {
-    req.dom.dashboard.balance.full = req.dom.dashboard.balance.full + 5;
+    req.dom.dashboard.balance.full = req.dom.dashboard.balance.full + 3;
   }
 
   req.body.created = req.body.created * 1000;
@@ -944,7 +944,7 @@ app.use("/webhook", (req, res, next) => {
   req.dom.dashboard.balance.transactions[req.body.created].charges = req.body.data.object.amount/100;
   if (req.body.data.object.amount == "249") req.dom.dashboard.balance.transactions[req.body.created].credits = "+1 Basic";
   if (req.body.data.object.amount == "799") req.dom.dashboard.balance.transactions[req.body.created].credits = "+1 Full";
-  if (req.body.data.object.amount == "1445") req.dom.dashboard.balance.transactions[req.body.created].credits = "+5 Full";
+  if (req.body.data.object.amount == "1445") req.dom.dashboard.balance.transactions[req.body.created].credits = "+3 Full";
   req.dom.dashboard.balance.transactions[req.body.created].balancebasic = req.dom.dashboard.balance.basic;
   req.dom.dashboard.balance.transactions[req.body.created].balancefull = req.dom.dashboard.balance.full;
 
@@ -2356,7 +2356,7 @@ app.use((req, res, next) => {
                 </div>
               </div>
               <div class="dashboardreportsrecordstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;margin-top:1rem;font-weight:bold;font-size:1.5rem;">
-                RECORDS
+                REPORTS
               </div>
               <div style="width:100%;">
                 <div class="dashboardaddsearch" style="display:grid;width:100%;align-content:start;">
