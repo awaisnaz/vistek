@@ -2313,6 +2313,35 @@ app.use((req, res, next) => {
                 REPORTS
               </div>
               <div class="dashboardreportsbody" style="display:grid;width:100%;background:#2f2e2a;grid-auto-flow:column;">
+                <div class="dashboardbalances" style="display:grid;grid-auto-flow:column;justify-content:end;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;width:100%;">
+                  <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;">
+                    <div style="display:grid;align-self:end;">
+                      <img src="/basicreporticon.webp" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
+                    </div>
+                    <div class="dashboardreportbalancebasic" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
+                        0
+                    </div>
+                    <div style="display:grid;align-self:end;">
+                      BASIC REPORT CREDITS
+                    </div>
+                  </div>
+                  <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;">
+                    <div style="display:grid;align-self:end;">
+                      <img src="/fullreporticon.png" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
+                    </div>
+                    <div class="dashboardreportbalancefull" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
+                        0
+                    </div> 
+                    <div style="display:grid;align-self:end;">
+                      FULL REPORT CREDITS
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="dashboardreportsrecordstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;margin-top:1rem;font-weight:bold;font-size:1.5rem;">
+                RECORDS
+              </div>
+              <div style="width:100%;">
                 <div class="dashboardaddsearch" style="display:grid;width:100%;align-content:start;">
                   <div class="dashboardadd" style="display:grid;background:#2f2e2a;padding:0.5rem 0 0 0;width:100%;">
                     <div style="display:grid;grid-auto-flow:column;justify-content:start;">
@@ -2349,35 +2378,6 @@ app.use((req, res, next) => {
                     </div>
                   </div>
                 </div>
-                <div class="dashboardbalances" style="display:grid;grid-auto-flow:column;justify-content:end;grid-gap:0;background:#2f2e2a;padding:0.5rem 0;width:100%;">
-                  <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;">
-                    <div style="display:grid;align-self:end;">
-                      <img src="/basicreporticon.webp" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
-                    </div>
-                    <div class="dashboardreportbalancebasic" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
-                        0
-                    </div>
-                    <div style="display:grid;align-self:end;">
-                      BASIC REPORT CREDITS
-                    </div>
-                  </div>
-                  <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;">
-                    <div style="display:grid;align-self:end;">
-                      <img src="/fullreporticon.png" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
-                    </div>
-                    <div class="dashboardreportbalancefull" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
-                        0
-                    </div> 
-                    <div style="display:grid;align-self:end;">
-                      FULL REPORT CREDITS
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="dashboardreportsrecordstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;margin-top:1rem;font-weight:bold;font-size:1.5rem;">
-                RECORDS
-              </div>
-              <div style="width:100%;">
                 <div style="padding:0.5rem;color:#CF9AFF;background:#2f2e2a;border-bottom:0.1rem solid gray;width:100%;font-size:1.1rem;">
                   Note: Disabled View Report Buttons means you need to add respective Credits. To add Credits, <a href="/dashboard/balance">click here</a>.
                 </div>
@@ -2434,33 +2434,43 @@ app.use((req, res, next) => {
                 BALANCE
               </div>
               <div class="dashboardbalancevalues grid2" style="display:grid;grid-auto-flow:row;grid-gap:0;justify-content:stretch;background:#2f2e2a;font-size:1rem;width:100%;">
-                <div style="display:grid;grid-auto-flow:column;grid-gap:0.5rem;justify-content:start;align-self:center;justify-self:start;color:white;margin:0.5rem;">
-                  <div>
-                    BASIC REPORT CREDITS:
-                  </div>
-                  <div class="dashboardbalancebasic">
-                    0
-                  </div>
-                </div>
-                <div style="display:grid;grid-auto-flow:column;grid-gap:0.5rem;justify-content:start;align-self:center;justify-self:start;color:white;margin:0.5rem;">
-                  <div>
-                    FULL REPORT CREDITS:
-                  </div>
-                  <div class="dashboardbalancefull">
-                    0
-                  </div>
-                </div>
-                <div class="dashboardbalanceadd grid2" style="display:grid;justify-content:center;color:white;margin:0.5rem;">
-                  <form id="dashboardbalance" action="/dashboard/balance" method="post">
-                  </form>
-                  <div class="dashboardbalanceaddbasic">
-                    <input class="dashboardbalanceaddbasicinput" name="dashboardbalanceaddbasic" type="submit" form="dashboardbalance" value="ORDER BASIC REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
-                  </div>
-                  <div class="dashboardbalanceaddfull">
-                    <input class="dashboardbalanceaddfullinput" name="dashboardbalanceaddfull" type="submit" form="dashboardbalance" value="ORDER FULL REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
-                  </div>
-                  <div class="dashboardbalanceaddmulti">
-                    <input class="dashboardbalanceaddmultiinput" name="dashboardbalanceaddmulti" type="submit" form="dashboardbalance" value="ORDER MULTIPLE REPORTS" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                <form id="dashboardbalance" action="/dashboard/balance" method="post">
+                </form>
+                <div class="dashboardbalancesbalanceadd" style="display:grid;grid-auto-flow:column;">  
+                  <div class="dashboardbalances" style="display:grid;grid-auto-flow:column;justify-content:start;grid-gap:0.5rem;background:#2f2e2a;padding:0.5rem;width:100%;">
+                    <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;background:#3f3e3a;">
+                      <div style="display:grid;align-self:end;">
+                        <img src="/basicreporticon.webp" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
+                      </div>
+                      <div class="dashboardbalancebasic" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
+                          0
+                      </div>
+                      <div style="display:grid;align-self:end;justify-content:center;">
+                        BASIC REPORT CREDITS
+                      </div>
+                      <div class="dashboardbalanceaddbasic">
+                        <input class="dashboardbalanceaddbasicinput" name="dashboardbalanceaddbasic" type="submit" form="dashboardbalance" value="ORDER BASIC REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                      </div>
+                      <div style="width:255.16px;height:47px;">
+                      </div>
+                    </div>
+                    <div style="display:grid;justify-content:end;padding:0 0.5rem;color:#CF9AFF;background:#3f3e3a;">
+                      <div style="display:grid;align-self:end;">
+                        <img src="/fullreporticon.png" style="display:grid;align-self:end;justify-self:center;width:4rem;filter:invert(100%);" alt="car icon" loading="lazy">
+                      </div>
+                      <div class="dashboardbalancefull" style="display:grid;align-self:end;justify-self:center;font-size:4rem;">
+                          0
+                      </div> 
+                      <div style="display:grid;align-self:end;justify-content:center;">
+                        FULL REPORT CREDITS
+                      </div>
+                      <div class="dashboardbalanceaddfull">
+                        <input class="dashboardbalanceaddfullinput" name="dashboardbalanceaddfull" type="submit" form="dashboardbalance" value="ORDER FULL REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                      </div>
+                      <div class="dashboardbalanceaddmulti">
+                        <input class="dashboardbalanceaddmultiinput" name="dashboardbalanceaddmulti" type="submit" form="dashboardbalance" value="ORDER MULTIPLE FULL REPORTS" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="dashboardbalancemessage" style="display:none;padding:0.5rem;color:#CF9AFF;font-size:1.25rem;">

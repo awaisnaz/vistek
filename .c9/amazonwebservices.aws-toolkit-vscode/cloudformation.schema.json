@@ -32442,6 +32442,75 @@
         "AWS::DMS::Endpoint.OracleSettings": {
             "additionalProperties": false,
             "properties": {
+                "AccessAlternateDirectly": {
+                    "type": "boolean"
+                },
+                "AddSupplementalLogging": {
+                    "type": "boolean"
+                },
+                "AdditionalArchivedLogDestId": {
+                    "type": "number"
+                },
+                "AllowSelectNestedTables": {
+                    "type": "boolean"
+                },
+                "ArchivedLogDestId": {
+                    "type": "number"
+                },
+                "ArchivedLogsOnly": {
+                    "type": "boolean"
+                },
+                "AsmPassword": {
+                    "type": "string"
+                },
+                "AsmServer": {
+                    "type": "string"
+                },
+                "AsmUser": {
+                    "type": "string"
+                },
+                "CharLengthSemantics": {
+                    "type": "string"
+                },
+                "DirectPathNoLog": {
+                    "type": "boolean"
+                },
+                "DirectPathParallelLoad": {
+                    "type": "boolean"
+                },
+                "EnableHomogenousTablespace": {
+                    "type": "boolean"
+                },
+                "ExtraArchivedLogDestIds": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": "array"
+                },
+                "FailTasksOnLobTruncation": {
+                    "type": "boolean"
+                },
+                "NumberDatatypeScale": {
+                    "type": "number"
+                },
+                "OraclePathPrefix": {
+                    "type": "string"
+                },
+                "ParallelAsmReadThreads": {
+                    "type": "number"
+                },
+                "ReadAheadBlocks": {
+                    "type": "number"
+                },
+                "ReadTableSpaceName": {
+                    "type": "boolean"
+                },
+                "ReplacePathPrefix": {
+                    "type": "boolean"
+                },
+                "RetryInterval": {
+                    "type": "number"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
@@ -32453,6 +32522,33 @@
                 },
                 "SecretsManagerSecretId": {
                     "type": "string"
+                },
+                "SecurityDbEncryption": {
+                    "type": "string"
+                },
+                "SecurityDbEncryptionName": {
+                    "type": "string"
+                },
+                "SpatialDataOptionToGeoJsonFunctionName": {
+                    "type": "string"
+                },
+                "StandbyDelayTime": {
+                    "type": "number"
+                },
+                "UseAlternateFolderForOnline": {
+                    "type": "boolean"
+                },
+                "UseBFile": {
+                    "type": "boolean"
+                },
+                "UseDirectPathFullLoad": {
+                    "type": "boolean"
+                },
+                "UseLogminerReader": {
+                    "type": "boolean"
+                },
+                "UsePathPrefix": {
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -32460,10 +32556,43 @@
         "AWS::DMS::Endpoint.PostgreSqlSettings": {
             "additionalProperties": false,
             "properties": {
+                "AfterConnectScript": {
+                    "type": "string"
+                },
+                "CaptureDdls": {
+                    "type": "boolean"
+                },
+                "DdlArtifactsSchema": {
+                    "type": "string"
+                },
+                "ExecuteTimeout": {
+                    "type": "number"
+                },
+                "FailTasksOnLobTruncation": {
+                    "type": "boolean"
+                },
+                "HeartbeatEnable": {
+                    "type": "boolean"
+                },
+                "HeartbeatFrequency": {
+                    "type": "number"
+                },
+                "HeartbeatSchema": {
+                    "type": "string"
+                },
+                "MaxFileSize": {
+                    "type": "number"
+                },
+                "PluginName": {
+                    "type": "string"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
                 "SecretsManagerSecretId": {
+                    "type": "string"
+                },
+                "SlotName": {
                     "type": "string"
                 }
             },
@@ -49465,7 +49594,7 @@
             "additionalProperties": false,
             "properties": {
                 "Provider": {
-                    "type": "object"
+                    "$ref": "#/definitions/AWS::EKS::Cluster.Provider"
                 },
                 "Resources": {
                     "items": {
@@ -49504,6 +49633,15 @@
             "additionalProperties": false,
             "properties": {
                 "Type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::EKS::Cluster.Provider": {
+            "additionalProperties": false,
+            "properties": {
+                "KeyArn": {
                     "type": "string"
                 }
             },
@@ -55755,6 +55893,164 @@
             "required": [
                 "Key",
                 "Value"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "Description": {
+                            "type": "string"
+                        },
+                        "EventBuses": {
+                            "items": {
+                                "$ref": "#/definitions/AWS::Events::Endpoint.EndpointEventBus"
+                            },
+                            "type": "array"
+                        },
+                        "Name": {
+                            "type": "string"
+                        },
+                        "ReplicationConfig": {
+                            "$ref": "#/definitions/AWS::Events::Endpoint.ReplicationConfig"
+                        },
+                        "RoleArn": {
+                            "type": "string"
+                        },
+                        "RoutingConfig": {
+                            "$ref": "#/definitions/AWS::Events::Endpoint.RoutingConfig"
+                        }
+                    },
+                    "required": [
+                        "EventBuses",
+                        "Name",
+                        "RoutingConfig"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::Events::Endpoint"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.EndpointEventBus": {
+            "additionalProperties": false,
+            "properties": {
+                "EventBusArn": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "EventBusArn"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.FailoverConfig": {
+            "additionalProperties": false,
+            "properties": {
+                "Primary": {
+                    "$ref": "#/definitions/AWS::Events::Endpoint.Primary"
+                },
+                "Secondary": {
+                    "$ref": "#/definitions/AWS::Events::Endpoint.Secondary"
+                }
+            },
+            "required": [
+                "Primary",
+                "Secondary"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.Primary": {
+            "additionalProperties": false,
+            "properties": {
+                "HealthCheck": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "HealthCheck"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.ReplicationConfig": {
+            "additionalProperties": false,
+            "properties": {
+                "State": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "State"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.RoutingConfig": {
+            "additionalProperties": false,
+            "properties": {
+                "FailoverConfig": {
+                    "$ref": "#/definitions/AWS::Events::Endpoint.FailoverConfig"
+                }
+            },
+            "required": [
+                "FailoverConfig"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.Secondary": {
+            "additionalProperties": false,
+            "properties": {
+                "Route": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Route"
             ],
             "type": "object"
         },
@@ -131314,6 +131610,9 @@
                         },
                         {
                             "$ref": "#/definitions/AWS::Events::Connection"
+                        },
+                        {
+                            "$ref": "#/definitions/AWS::Events::Endpoint"
                         },
                         {
                             "$ref": "#/definitions/AWS::Events::EventBus"
