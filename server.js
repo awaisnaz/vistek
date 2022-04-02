@@ -2061,7 +2061,6 @@ app.use((req, res, next) => {
               </div>
             </div>
             <div class="homepackages packages" id="packages" style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));grid-gap:15px;justify-items:center;justify-self:center;text-align:justify;margin-top:1rem;width:96vw;">
-              <form action="/" method="post">
               <div class="homepackagestitle" style="display:grid;justify-items:center;margin-bottom:0.5rem;">
                 <div style="justify-self:center;font-size:3rem;font-weight:bold;">
                   Packages
@@ -2274,20 +2273,19 @@ app.use((req, res, next) => {
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href=/?homeregno=1">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href=/?homeregno=1">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;border-bottom-right-radius:1rem;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href=/?homeregno=1">
                   </div>
                 </div>
-                </form>
               </div>
               <div>
                 <form action="/report" method="post">
