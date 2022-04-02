@@ -152,6 +152,12 @@ app.use((req, res, next) => {
     },
     dashboard: {
       reports: {
+        balance: {
+          message: {
+            text: "",
+            color: ""
+          }
+        },
         add: {
           message: {
             text: "",
