@@ -700,7 +700,7 @@ app.use("/dashboard/balance", (req, res, next) => {
   }
 
   req.dom.page = "/dashboard/balance";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  if(!req.body.dashboardbalanceaddbasic && !req.body.dashboardreportsreportsaddbasic && !req.body.dashboardbalanceaddfull && !req.body.dashboardreportsreportsaddfull && !req.body.dashboardbalanceaddmulti) next();
+  if(!req.body.dashboardbalanceaddbasic && !req.body.dashboardbalanceaddfull && !req.body.dashboardbalanceaddmulti) next();
 });
 
 app.use("/dashboard/profile", (req, res, next) => {
