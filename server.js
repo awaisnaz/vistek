@@ -290,7 +290,7 @@ app.use((req, res, next) => {
 app.get("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
   req.dom.page = "/";//it it at last to account for any session changes
   
-  if (req.body.homeregno) console.log("HHHHHHHHHHHHHHHHHH);
+  if (req.body.homeregno) console.log("HHHHHHHHHHHHHHHHHH");
   
   next();
 });
