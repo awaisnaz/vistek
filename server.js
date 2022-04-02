@@ -411,14 +411,124 @@ app.use("/dashboard/reports", (req, res, next) => {
   req.dom.dashboard.reports.add.message.text = null;//initialization
   req.dom.dashboard.reports.search.regno = null;//initialization
   req.dom.dashboard.reports.search.message.text = null;//initialization
-  if(req.body.dashboardreportsregno) req.body.dashboardreportsregno = req.body.dashboardreportsregno.toUpperCase();
-  if(req.body.dashboardreportssearch) req.body.dashboardreportssearch = req.body.dashboardreportssearch.toUpperCase();
+  if(req.body.dashboardreportsregno) req.body.dashboardreportsregno = req.body.dashboardreportsregno.toUpperCase();//initialization
+  if(req.body.dashboardreportssearch) req.body.dashboardreportssearch = req.body.dashboardreportssearch.toUpperCase();//initialization
   
 
   if (!req.dom.account.login.status) {
     res.redirect("/account/login");
     req.sent = 1;//end express session
     next();
+  }
+  
+  if (req.query.dashboardreportsbalancemessagebasic) {
+    req.dom.dashboard.reports.balance.message.text = "Single Basic Report Credit has been added to your account.";
+    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
+  }
+
+  if (req.query.dashboardreportsbalancemessagefull) {
+    req.dom.dashboard.reports.balance.message.text = "1 Full Report Credit has been added to your account.";
+    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
+  }
+
+  if (req.query.dashboardreportsbalancemessagemulti) {
+    req.dom.dashboard.reports.balance.message.text = "3 Full Report Credits have been added to your account.";
+    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
+  }
+
+  if (req.query.dashboardreportsbalancemessagecancel) {
+    req.dom.dashboard.reports.balance.message.text = "Your transaction has been cancelled and your card was not charged, nor any balance were settled at your account.";
+    req.dom.dashboard.reports.balance.message.color = "#CF6679";
+  }
+  
+  if (req.body.dashboardreportsbalanceaddbasic) {
+    stripe.checkout.sessions.create({
+      customer_email: req.cookies.user,
+      line_items: [
+        {
+          price_data: {
+            currency: 'gbp',
+            product_data: {
+              name: 'BASIC VIS REPORT',
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
+            },
+            unit_amount: 249,
+          },
+          quantity: 1,
+        }
+      ],
+      mode: 'payment',
+      success_url: "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1",
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagecancel=1'
+    })
+      .then(resp => {
+        res.redirect(resp.url);
+        req.sent = 1;//end express session
+        next();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+
+  if (req.body.dashboardreportsbalanceaddfull) {
+    stripe.checkout.sessions.create({
+      customer_email: req.cookies.user,
+      line_items: [
+        {
+          price_data: {
+            currency: 'gbp',
+            product_data: {
+              name: 'FULL VIS REPORT',
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
+            },
+            unit_amount: 799,
+          },
+          quantity: 1,
+        }
+      ],
+      mode: 'payment',
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagefull=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagecancel=1'
+    })
+      .then(resp => {
+        res.redirect(resp.url);
+        req.sent = 1;//end express session
+        next();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+
+  if (req.body.dashboardreportsbalanceaddmulti) {
+    stripe.checkout.sessions.create({
+      customer_email: req.cookies.user,
+      line_items: [
+        {
+          price_data: {
+            currency: 'gbp',
+            product_data: {
+              name: 'MULTIPLE VIS REPORTS',
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
+            },
+            unit_amount: 1445,
+          },
+          quantity: 1,
+        }
+      ],
+      mode: 'payment',
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagemulti=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagecancel=1'
+    })
+      .then(resp => {
+        res.redirect(resp.url);
+        req.sent = 1;//end express session
+        next();
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 
   if (req.body.dashboardreportsaddcar) {
@@ -461,9 +571,7 @@ app.use("/dashboard/reports", (req, res, next) => {
       });
   }
   
-  if(!req.body.dashboardreportsaddcar && !req.body.dashboardreportssearch){
-    next();
-  }
+  if(!req.body.dashboardreportsbalanceaddbasic && !req.body.dashboardreportsbalanceaddfull && !req.body.dashboardreportsbalanceaddmulti && !req.body.dashboardreportsaddcar && !req.body.dashboardreportssearch) next();
 });
 
 app.use("/dashboard/balance", (req, res, next) => {
@@ -486,7 +594,7 @@ app.use("/dashboard/balance", (req, res, next) => {
   }
 
   if (req.query.dashboardbalancemessagemulti) {
-    req.dom.dashboard.balance.message.text = "5 Full Report Credit has been added to your account.";
+    req.dom.dashboard.balance.message.text = "3 Full Report Credits have been added to your account.";
     req.dom.dashboard.balance.message.color = "#CF9AFF";
   }
 
@@ -495,7 +603,10 @@ app.use("/dashboard/balance", (req, res, next) => {
     req.dom.dashboard.balance.message.color = "#CF6679";
   }
 
-  if (req.body.dashboardbalanceaddbasic) {
+  if (req.body.dashboardbalanceaddbasic || req.body.dashboardreportsreportsaddbasic) {
+    let success_url;
+    if (req.body.dashboardbalanceaddbasic) success_url = "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1";
+    if (req.body.dashboardreportsreportsaddbasic) success_url = "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardbalancemessagebasic=1";
     stripe.checkout.sessions.create({
       customer_email: req.cookies.user,
       line_items: [
@@ -512,7 +623,7 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1',
+      success_url: success_url,
       cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
     })
       .then(resp => {
@@ -525,7 +636,7 @@ app.use("/dashboard/balance", (req, res, next) => {
       });
   }
 
-  if (req.body.dashboardbalanceaddfull) {
+  if (req.body.dashboardbalanceaddfull || req.body.dashboardreportsreportsaddfull) {
     stripe.checkout.sessions.create({
       customer_email: req.cookies.user,
       line_items: [
@@ -586,7 +697,7 @@ app.use("/dashboard/balance", (req, res, next) => {
   }
 
   req.dom.page = "/dashboard/balance";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  if(!req.body.dashboardbalanceaddbasic && !req.body.dashboardbalanceaddfull && !req.body.dashboardbalanceaddmulti) next();
+  if(!req.body.dashboardbalanceaddbasic && !req.body.dashboardreportsreportsaddbasic && !req.body.dashboardbalanceaddfull && !req.body.dashboardreportsreportsaddfull && !req.body.dashboardbalanceaddmulti) next();
 });
 
 app.use("/dashboard/profile", (req, res, next) => {
@@ -1304,6 +1415,12 @@ app.use((req, res, next) => {
               window.document.querySelector(".accountresetmessage").style.color = dom.account.reset.message.color;
             }
             
+            if (dom.dashboard.reports.balance.message.text) {
+              window.document.querySelector(".dashboardreportsbalancemessage").style.display = "grid";
+              window.document.querySelector(".dashboardreportsbalancemessage").innerHTML = dom.dashboard.reports.balance.message.text;
+              window.document.querySelector(".dashboardreportsbalancemessage").style.color = dom.dashboard.reports.balance.message.color;
+            }
+            
             if (dom.dashboard.reports.add.message.text) {
               window.document.querySelector(".dashboardaddmessage").style.display = "grid";
               window.document.querySelector(".dashboardaddmessage").innerHTML = dom.dashboard.reports.add.message.text;
@@ -1333,16 +1450,16 @@ app.use((req, res, next) => {
                 if (cars[key].basic) dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "purple";
                 if (cars[key].full) dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").style.color = "purple";
                 if (!dom.dashboard.balance.basic && !cars[key].basic) {
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("name","dashboardbalanceaddbasic");
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("form","dashboardreportsbuttonsbalance");
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("value","ORDER BASIC REPORT");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("name","dashboardreportsbalanceaddbasic");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("form","dashboardreportsbalance");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("value",key+"-basic");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").style.color = "#b39932";
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportbasic").setAttribute("onclick","return true;");
                 }
                 if (!dom.dashboard.balance.full && !cars[key].full) {
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("name","dashboardbalanceaddfull");
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("form","dashboardreportsbuttonsbalance");
-                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("value","ORDER FULL REPORT");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("name","dashboardreportsbalanceaddfull");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("form","dashboardreportsbalance");
+                  dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("value",key+"-full");
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").style.color = "#b39932";
                   dashboardreportsrecordtemplate.querySelector(".dashboardreportfull").setAttribute("onclick","return true;");
                 }
@@ -2323,7 +2440,7 @@ app.use((req, res, next) => {
               </form>
               <form id="dashboardreportsbuttons" action="/report" method="post">
               </form>
-              <form id="dashboardreportsbuttonsbalance" action="/dashboard/balance" method="post">
+              <form id="dashboardreportsbalance" action="/dashboard/reports" method="post">
               </form>
               <div class="dashboardreportstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;font-weight:bold;font-size:1.5rem;">
                 BALANCE
@@ -2368,7 +2485,7 @@ app.use((req, res, next) => {
                     </div>
                   </div>
                 </div>
-                <div class="dashboardreportbalancemessage" style="display:none;padding:0.5rem;color:#CF9AFF;font-size:1.25rem;">
+                <div class="dashboardreportsbalancemessage" style="display:none;padding:0.5rem;color:#CF9AFF;font-size:1.25rem;">
                 </div>
               </div>
               <div class="dashboardreportsrecordstitle" style="justify-self:stretch;background:#f9d441;color:black;padding:0.5rem;margin-top:1rem;font-weight:bold;font-size:1.5rem;">
