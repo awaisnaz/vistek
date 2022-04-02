@@ -2271,17 +2271,17 @@ app.use((req, res, next) => {
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno'">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number.'; window.document.querySelector('.homebannerbgmessage').style.color = '#ef5350'; window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold'; window.location.href='/#homeregno';">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno'">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno';">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;border-bottom-right-radius:1rem;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno'">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno';">
                   </div>
                 </div>
               </div>
