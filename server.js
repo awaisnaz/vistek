@@ -290,8 +290,6 @@ app.use((req, res, next) => {
 app.get("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
   req.dom.page = "/";//it it at last to account for any session changes
   
-  if (req.cookies.user && req.body) console.log("IIIIIIIIII",req.body);
-  
   next();
 });
 
@@ -1934,7 +1932,7 @@ app.use((req, res, next) => {
                 <div>
                 </div>
                 <div style="display:grid;justify-items:stretch;align-self:end;justify-content:center;font-size:2rem;margin-top:0.5rem;text-align:center;margin:0.5rem;">
-                  <div>
+                  <div id="homeregno">
                     Get An Instant Vehicle History Check Now
                   </div>
                 </div>
@@ -2273,17 +2271,17 @@ app.use((req, res, next) => {
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href=/?homeregno=1">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno'">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href=/?homeregno=1">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno'">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;border-bottom-right-radius:1rem;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href=/?homeregno=1">
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="window.location.href='/#homeregno'">
                   </div>
                 </div>
               </div>
