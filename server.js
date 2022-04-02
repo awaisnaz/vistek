@@ -23,15 +23,15 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 import Gun from "gun";// gun stores null, not undefined. Can not store object if a string or null is already stored on a node, it fails silently. gun does not have event loop, thus it may ignore crud operations if busy. gun can not save arrays, so use the listed functions below to save/retrieve arrays, ".put(array2object(document))", and "Object.keys(resp.arraylist).map((key) => resp.arraylist[key])".
 import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
 import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
-let gun = Gun({
-  s3: { // Optional; update to save a copy to AWS S3
-    key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
-    secret: '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', // AWS Secret Token
-    bucket: 'vistek' // The bucket you want to save into
-  },
-  web: server
-});
-// let gun = Gun({web: server});
+// let gun = Gun({
+//   s3: { // Optional; update to save a copy to AWS S3
+//     key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
+//     secret: '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', // AWS Secret Token
+//     bucket: 'vistek' // The bucket you want to save into
+//   },
+//   web: server
+// });
+let gun = Gun({web: server});
 function array2object(arr) {
   var obj = {};
 	Gun.list.map(arr, function(v, f, t) {
