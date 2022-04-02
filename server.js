@@ -2446,7 +2446,7 @@ app.use((req, res, next) => {
                 BALANCE
               </div>
               <div class="dashboardreportbalancevalues grid2" style="display:grid;grid-auto-flow:row;grid-gap:0;justify-content:stretch;background:#2f2e2a;font-size:1rem;width:100%;">
-                <form id="dashboardreportbalance" action="/dashboard/balance" method="post">
+                <form id="dashboardreportsbalance" action="/dashboard/reports" method="post">
                 </form>
                 <div class="dashboardreportbalancesbalanceadd" style="display:grid;grid-auto-flow:column;">  
                   <div class="dashboardreportbalances" style="display:grid;grid-gap:0.5rem;background:#2f2e2a;padding:0.5rem;width:100%;">
@@ -2461,7 +2461,7 @@ app.use((req, res, next) => {
                         BASIC REPORT CREDITS
                       </div>
                       <div class="dashboardreportbalanceaddbasic">
-                        <input class="dashboardreportbalanceaddbasicinput" name="dashboardbalanceaddbasic" type="submit" form="dashboardreportbalance" value="ORDER BASIC REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                        <input class="dashboardreportbalanceaddbasicinput" name="dashboardreportsbalanceaddbasic" type="submit" form="dashboardreportsbalance" value="ORDER BASIC REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
                       </div>
                       <div style="width:255.16px;height:47px;">
                       </div>
@@ -2477,10 +2477,10 @@ app.use((req, res, next) => {
                         FULL REPORT CREDITS
                       </div>
                       <div class="dashboardreportbalanceaddfull">
-                        <input class="dashboardreportbalanceaddfullinput" name="dashboardbalanceaddfull" type="submit" form="dashboardreportbalance" value="ORDER FULL REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                        <input class="dashboardreportbalanceaddfullinput" name="dashboardreportsbalanceaddfull" type="submit" form="dashboardreportsbalance" value="ORDER FULL REPORT" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
                       </div>
                       <div class="dashboardbalanceaddmulti">
-                        <input class="dashboardreportbalanceaddmultiinput" name="dashboardbalanceaddmulti" type="submit" form="dashboardreportbalance" value="ORDER MULTIPLE FULL REPORTS" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
+                        <input class="dashboardreportbalanceaddmultiinput" name="dashboardreportsbalanceaddmulti" type="submit" form="dashboardreportsbalance" value="ORDER MULTIPLE FULL REPORTS" style="background:#f9d441;border:0;margin:0.5rem;padding:0.5rem;font-weight:bold;cursor:pointer;width:100%;">
                       </div>
                     </div>
                   </div>
