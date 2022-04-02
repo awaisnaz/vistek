@@ -465,7 +465,7 @@ app.use("/dashboard/reports", (req, res, next) => {
       ],
       mode: 'payment',
       success_url: "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1",
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagecancel=1'
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -494,8 +494,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagefull=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagecancel=1'
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagefull=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -524,8 +524,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagemulti=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardreportsbalancemessagecancel=1'
+      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagemulti=1',
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -609,10 +609,7 @@ app.use("/dashboard/balance", (req, res, next) => {
     req.dom.dashboard.balance.message.color = "#CF6679";
   }
 
-  if (req.body.dashboardbalanceaddbasic || req.body.dashboardreportsreportsaddbasic) {
-    let success_url;
-    if (req.body.dashboardbalanceaddbasic) success_url = "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1";
-    if (req.body.dashboardreportsreportsaddbasic) success_url = "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardbalancemessagebasic=1";
+  if (req.body.dashboardbalanceaddbasic) {
     stripe.checkout.sessions.create({
       customer_email: req.cookies.user,
       line_items: [
@@ -629,7 +626,7 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: success_url,
+      success_url: "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1",
       cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
     })
       .then(resp => {
@@ -642,7 +639,7 @@ app.use("/dashboard/balance", (req, res, next) => {
       });
   }
 
-  if (req.body.dashboardbalanceaddfull || req.body.dashboardreportsreportsaddfull) {
+  if (req.body.dashboardbalanceaddfull) {
     stripe.checkout.sessions.create({
       customer_email: req.cookies.user,
       line_items: [
