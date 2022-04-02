@@ -464,7 +464,7 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1",
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
       cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
     })
       .then(resp => {
@@ -773,6 +773,12 @@ app.use("/report", upload.array(), (req, res, next) => {
 
   if (req.body.regno) {
     let temp = req.body.regno.split("-");
+    req.dom.report.regno = temp[0].toUpperCase();
+    req.dom.report.mode = temp[1];
+  }
+  
+  if (req.query.regno) {
+    let temp = req.query.regno.split("-");
     req.dom.report.regno = temp[0].toUpperCase();
     req.dom.report.mode = temp[1];
   }
