@@ -494,7 +494,7 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
+      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
       cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
     })
       .then(resp => {
