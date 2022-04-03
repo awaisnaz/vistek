@@ -2302,7 +2302,7 @@ app.use((req, res, next) => {
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
                       window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold'; 
                       window.document.querySelector('.homebannerbgmessage').style.fontSize = '2rem'; 
-                      window.location.href='/?homebannerbgmessage=1';
+                      window.location.href='/%23#homeregno?homebannerbgmessage=1';
                     ">
                   </div>
                 </div>
@@ -2314,7 +2314,7 @@ app.use((req, res, next) => {
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
                       window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold'; 
                       window.document.querySelector('.homebannerbgmessage').style.fontSize = '2rem'; 
-                      window.location.href='/?homebannerbgmessage=1';"
+                      window.location.href='/%23#homeregno?homebannerbgmessage=1';"
                     ">
                   </div>
                 </div>
@@ -2326,7 +2326,7 @@ app.use((req, res, next) => {
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
                       window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold'; 
                       window.document.querySelector('.homebannerbgmessage').style.fontSize = '2rem'; 
-                      window.location.href='/?homebannerbgmessage=1';"
+                      window.location.href='/%23#homeregno?homebannerbgmessage=1';"
                     ">
                   </div>
                 </div>
