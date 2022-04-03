@@ -280,7 +280,6 @@ app.use((req, res, next) => {
         gun.get("users").get(req.cookies.user).load(res => {
           if (res) {
             req.dom = res;
-            req.dom.report = {};//req.dom.report gives unnecessary large console.log("req.dom"), so keep it null unless required for the reports page.
             next();
           }
           if (!res) {//if database malfunctions, and doesn't return anything then redirect
