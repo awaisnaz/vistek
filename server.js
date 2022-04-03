@@ -829,6 +829,36 @@ app.use("/report", upload.array(), (req, res, next) => {
         console.log(err);
       });
   }
+  
+  if (req.body.fullsectionunregisteredorder) {
+    stripe.checkout.sessions.create({
+      // customer_email: req.cookies.user,
+      line_items: [
+        {
+          price_data: {
+            currency: 'gbp',
+            product_data: {
+              name: 'FULL VIS REPORT',
+              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
+            },
+            unit_amount: 799,
+          },
+          quantity: 1,
+        }
+      ],
+      mode: 'payment',
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.fullsectionunregisteredorder}`,
+      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
+    })
+      .then(resp => {
+        res.redirect(resp.url);
+        req.sent = 1;//end express session
+        next();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
 
   if (req.dom.report.regno) {
     gun.get("vehicles").get(req.dom.report.regno).get("dvla").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
@@ -862,7 +892,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   }
   else { 
     req.dom.report.counter++;
-    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder) next();
+    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder && !req.body.fullsectionunregisteredorder) next();
   }
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
@@ -991,7 +1021,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     //two times increment because this section has two api calls.
     req.dom.report.counter++;
     req.dom.report.counter++;
-    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder) next();
+    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder && !req.body.fullsectionunregisteredorder) next();
   }
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full")))) {
@@ -1052,7 +1082,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   else {
     req.dom.report.full = null;
     req.dom.report.counter++;
-    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder) next();
+    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder && !req.body.fullsectionunregisteredorder) next();
   }
 });
 
@@ -1720,6 +1750,7 @@ app.use((req, res, next) => {
             if(!dom.report.full){
               window.document.querySelector(".reportfull").style.display = "none";
               window.document.querySelector(".reportfullunregistered").style.display = "grid";
+              window.document.querySelector(".fullsectionunregisteredorder").value = dom.report.regno+"-full";
             }
 
             if(dom.report.full){
@@ -2003,8 +2034,9 @@ app.use((req, res, next) => {
                       <button type="submit" form="vehiclereg" style="background-color:#66d469;font-size:3rem;font-weight:bold;border:0;width:100%;max-width:22rem;cursor:pointer;" onclick="let pattern = /^[a-zA-Z0-9]{7}$/; if(!pattern.test(document.querySelector('.homebannerbginput').value)) {
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid';
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Invalid Vehicle Registration Number. Please enter exact 7 alphanumerical characters.';
-                      window.document.querySelector('.homebannerbgmessage').style.color = '#ef5350';
+                      window.document.querySelector('.homebannerbgmessage').style.color = '#B00020';
                       window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold';
+                      window.document.querySelector('.homebannerbgmessage').style.fontSize = '2rem'; 
                       return false;
                     }">
                       GO
@@ -3808,7 +3840,7 @@ app.use((req, res, next) => {
                 <div style="display:grid;align-items:center;justify-items:center;background:#2f2e2a;padding:0.5rem;" onclick="window.location.href='/account/login'">
                   <form id="basicsectionunregisteredorder" action="/report" method="post">
                   </form>
-                  <button name="basicsectionunregisteredorder" form="basicsectionunregisteredorder" type="submit" value="" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;">
+                  <button class="basicsectionunregisteredorder" name="basicsectionunregisteredorder" form="basicsectionunregisteredorder" type="submit" value="" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;">
                     ORDER BASIC REPORT (£2.49 ONLY)
                   </button>
                 </div>
@@ -4356,7 +4388,11 @@ app.use((req, res, next) => {
                   FULL REPORT
                 </div>
                 <div style="display:grid;align-items:center;justify-items:center;background:#2f2e2a;padding:0.5rem;" onclick="window.location.href='/account/login'">
-                  <input name="paymentbasic" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER FULL REPORT (£7.99 ONLY)">
+                  <form id="fullsectionunregisteredorder" action="/report" method="post">
+                  </form>
+                  <button class="fullsectionunregisteredorder" name="fullsectionunregisteredorder" form="fullsectionunregisteredorder" type="submit" value="" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;">
+                    ORDER FULL REPORT (£7.99 ONLY)
+                  </button>
                 </div>
               </div>
               <div id="packagessection" class="reportprinthide reportpackages" style="display:grid;justify-self:center;">
