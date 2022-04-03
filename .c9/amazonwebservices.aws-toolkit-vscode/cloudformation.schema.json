@@ -32271,11 +32271,20 @@
                 "IncludeNullAndEmpty": {
                     "type": "boolean"
                 },
+                "IncludePartitionValue": {
+                    "type": "boolean"
+                },
                 "IncludeTableAlterOperations": {
                     "type": "boolean"
                 },
                 "IncludeTransactionDetails": {
                     "type": "boolean"
+                },
+                "MessageFormat": {
+                    "type": "string"
+                },
+                "MessageMaxBytes": {
+                    "type": "number"
                 },
                 "NoHexPrefix": {
                     "type": "boolean"
@@ -32317,6 +32326,9 @@
                     "type": "boolean"
                 },
                 "IncludeNullAndEmpty": {
+                    "type": "boolean"
+                },
+                "IncludePartitionValue": {
                     "type": "boolean"
                 },
                 "IncludeTableAlterOperations": {
@@ -32403,10 +32415,31 @@
         "AWS::DMS::Endpoint.MySqlSettings": {
             "additionalProperties": false,
             "properties": {
+                "AfterConnectScript": {
+                    "type": "string"
+                },
+                "CleanSourceMetadataOnMismatch": {
+                    "type": "boolean"
+                },
+                "EventsPollInterval": {
+                    "type": "number"
+                },
+                "MaxFileSize": {
+                    "type": "number"
+                },
+                "ParallelLoadThreads": {
+                    "type": "number"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
                 "SecretsManagerSecretId": {
+                    "type": "string"
+                },
+                "ServerTimezone": {
+                    "type": "string"
+                },
+                "TargetDbType": {
                     "type": "string"
                 }
             },
@@ -55893,164 +55926,6 @@
             "required": [
                 "Key",
                 "Value"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint": {
-            "additionalProperties": false,
-            "properties": {
-                "DeletionPolicy": {
-                    "enum": [
-                        "Delete",
-                        "Retain",
-                        "Snapshot"
-                    ],
-                    "type": "string"
-                },
-                "DependsOn": {
-                    "anyOf": [
-                        {
-                            "pattern": "^[a-zA-Z0-9]+$",
-                            "type": "string"
-                        },
-                        {
-                            "items": {
-                                "pattern": "^[a-zA-Z0-9]+$",
-                                "type": "string"
-                            },
-                            "type": "array"
-                        }
-                    ]
-                },
-                "Metadata": {
-                    "type": "object"
-                },
-                "Properties": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "Description": {
-                            "type": "string"
-                        },
-                        "EventBuses": {
-                            "items": {
-                                "$ref": "#/definitions/AWS::Events::Endpoint.EndpointEventBus"
-                            },
-                            "type": "array"
-                        },
-                        "Name": {
-                            "type": "string"
-                        },
-                        "ReplicationConfig": {
-                            "$ref": "#/definitions/AWS::Events::Endpoint.ReplicationConfig"
-                        },
-                        "RoleArn": {
-                            "type": "string"
-                        },
-                        "RoutingConfig": {
-                            "$ref": "#/definitions/AWS::Events::Endpoint.RoutingConfig"
-                        }
-                    },
-                    "required": [
-                        "EventBuses",
-                        "Name",
-                        "RoutingConfig"
-                    ],
-                    "type": "object"
-                },
-                "Type": {
-                    "enum": [
-                        "AWS::Events::Endpoint"
-                    ],
-                    "type": "string"
-                },
-                "UpdateReplacePolicy": {
-                    "enum": [
-                        "Delete",
-                        "Retain",
-                        "Snapshot"
-                    ],
-                    "type": "string"
-                }
-            },
-            "required": [
-                "Type",
-                "Properties"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint.EndpointEventBus": {
-            "additionalProperties": false,
-            "properties": {
-                "EventBusArn": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "EventBusArn"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint.FailoverConfig": {
-            "additionalProperties": false,
-            "properties": {
-                "Primary": {
-                    "$ref": "#/definitions/AWS::Events::Endpoint.Primary"
-                },
-                "Secondary": {
-                    "$ref": "#/definitions/AWS::Events::Endpoint.Secondary"
-                }
-            },
-            "required": [
-                "Primary",
-                "Secondary"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint.Primary": {
-            "additionalProperties": false,
-            "properties": {
-                "HealthCheck": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "HealthCheck"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint.ReplicationConfig": {
-            "additionalProperties": false,
-            "properties": {
-                "State": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "State"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint.RoutingConfig": {
-            "additionalProperties": false,
-            "properties": {
-                "FailoverConfig": {
-                    "$ref": "#/definitions/AWS::Events::Endpoint.FailoverConfig"
-                }
-            },
-            "required": [
-                "FailoverConfig"
-            ],
-            "type": "object"
-        },
-        "AWS::Events::Endpoint.Secondary": {
-            "additionalProperties": false,
-            "properties": {
-                "Route": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "Route"
             ],
             "type": "object"
         },
@@ -118517,6 +118392,9 @@
                         "AppNetworkAccessType": {
                             "type": "string"
                         },
+                        "AppSecurityGroupManagement": {
+                            "type": "string"
+                        },
                         "AuthMode": {
                             "type": "string"
                         },
@@ -118525,6 +118403,9 @@
                         },
                         "DomainName": {
                             "type": "string"
+                        },
+                        "DomainSettings": {
+                            "$ref": "#/definitions/AWS::SageMaker::Domain.DomainSettings"
                         },
                         "KmsKeyId": {
                             "type": "string"
@@ -118594,6 +118475,21 @@
             ],
             "type": "object"
         },
+        "AWS::SageMaker::Domain.DomainSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "RStudioServerProDomainSettings": {
+                    "$ref": "#/definitions/AWS::SageMaker::Domain.RStudioServerProDomainSettings"
+                },
+                "SecurityGroupIds": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
         "AWS::SageMaker::Domain.JupyterServerAppSettings": {
             "additionalProperties": false,
             "properties": {
@@ -118616,6 +118512,39 @@
                     "$ref": "#/definitions/AWS::SageMaker::Domain.ResourceSpec"
                 }
             },
+            "type": "object"
+        },
+        "AWS::SageMaker::Domain.RStudioServerProAppSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "AccessStatus": {
+                    "type": "string"
+                },
+                "UserGroup": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::SageMaker::Domain.RStudioServerProDomainSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "DefaultResourceSpec": {
+                    "$ref": "#/definitions/AWS::SageMaker::Domain.ResourceSpec"
+                },
+                "DomainExecutionRoleArn": {
+                    "type": "string"
+                },
+                "RStudioConnectUrl": {
+                    "type": "string"
+                },
+                "RStudioPackageManagerUrl": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "DomainExecutionRoleArn"
+            ],
             "type": "object"
         },
         "AWS::SageMaker::Domain.ResourceSpec": {
@@ -118659,6 +118588,9 @@
                 },
                 "KernelGatewayAppSettings": {
                     "$ref": "#/definitions/AWS::SageMaker::Domain.KernelGatewayAppSettings"
+                },
+                "RStudioServerProAppSettings": {
+                    "$ref": "#/definitions/AWS::SageMaker::Domain.RStudioServerProAppSettings"
                 },
                 "SecurityGroups": {
                     "items": {
@@ -121558,6 +121490,18 @@
             },
             "type": "object"
         },
+        "AWS::SageMaker::UserProfile.RStudioServerProAppSettings": {
+            "additionalProperties": false,
+            "properties": {
+                "AccessStatus": {
+                    "type": "string"
+                },
+                "UserGroup": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "AWS::SageMaker::UserProfile.ResourceSpec": {
             "additionalProperties": false,
             "properties": {
@@ -121599,6 +121543,9 @@
                 },
                 "KernelGatewayAppSettings": {
                     "$ref": "#/definitions/AWS::SageMaker::UserProfile.KernelGatewayAppSettings"
+                },
+                "RStudioServerProAppSettings": {
+                    "$ref": "#/definitions/AWS::SageMaker::UserProfile.RStudioServerProAppSettings"
                 },
                 "SecurityGroups": {
                     "items": {
@@ -131610,9 +131557,6 @@
                         },
                         {
                             "$ref": "#/definitions/AWS::Events::Connection"
-                        },
-                        {
-                            "$ref": "#/definitions/AWS::Events::Endpoint"
                         },
                         {
                             "$ref": "#/definitions/AWS::Events::EventBus"

@@ -126,6 +126,16 @@ app.use((req, res, next) => {
   req.timestamp = Date.now();
   req.dom = {//req stores values from previous request sessions, so need to initialize it on every request. Initializing the dom variable to null otherwise, error occurs of reading/writing attirbute of undefined nested object in if statements and crud code.
     page: null,
+    home: {
+      banner: {
+        bg: {
+          message: {
+            text: "",
+            color: ""
+          }
+        }
+      }
+    },
     account: {
       login: {
         active: null,
@@ -289,6 +299,11 @@ app.use((req, res, next) => {
 //home page rest endpoint
 app.get("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
   req.dom.page = "/";//it it at last to account for any session changes
+  
+  if (req.query.homebannerbgmessage) {
+    req.dom.home.banner.bg.message.text = "Please enter Vehicle Registration Number above to get its Report.";
+    req.dom.home.banner.bg.message.color = "#B00020";
+  }
   
   next();
 });
@@ -1389,6 +1404,14 @@ app.use((req, res, next) => {
             }
             if(dom.page == "/checkout"){
               window.document.querySelector(".checkoutpage").style.display = "grid";
+            }
+            
+            if(dom.home.banner.bg.message.text) {
+              window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
+              window.document.querySelector('.homebannerbgmessage').innerHTML = dom.home.banner.bg.message.text; 
+              window.document.querySelector('.homebannerbgmessage').style.color = dom.home.banner.bg.message.color; 
+              window.document.querySelector('.homebannerbgmessage').style.fontWeight = 'bold'; 
+              window.document.querySelector('.homebannerbgmessage').style.fontSize = '2rem';
             }
 
             if (!dom.account.login.status) {
