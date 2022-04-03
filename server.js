@@ -300,6 +300,7 @@ app.use((req, res, next) => {
 app.get("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
   req.dom.page = "/";//it it at last to account for any session changes
   
+  console.log("HIIIIIIIII",req.query);
   if (req.query.homebannerbgmessage) {
     req.dom.home.banner.bg.message.text = "Please enter Vehicle Registration Number above to get its Report.";
     req.dom.home.banner.bg.message.color = "#B00020";
