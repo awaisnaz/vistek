@@ -232,7 +232,7 @@ app.use((req, res, next) => {
   };
   req.sent = null;//default on every session.
 
-  req.cookies.user = decrypt(req.cookies.user);
+  req.cookies.user = decrypt(req.cookies.user); //if no user cookie stored, then req.cookies.user = null; otherwise req.cookies.user = email;
 
   if (req.body.accountloginemail) {
     req.body.accountloginemail = req.body.accountloginemail.toUpperCase();
@@ -284,6 +284,7 @@ app.use((req, res, next) => {
           }
           if (!res) {//if database malfunctions, and doesn't return anything then redirect
             res.redirect(req.url);
+            req.sent = 1;//end express session.
           }
         });// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
       }
@@ -5160,3 +5161,4 @@ app.use((req, res, next) => {
 app.use(/.*/, function (req, res, next) {
   if (!req.sent) res.redirect("/");
 });
+
