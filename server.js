@@ -15,6 +15,10 @@ let upload = multer(); // populates req.body with upload form data.
 let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("server started.")); //Start the server. heroku adds env automatically so process.env.PORT is necessary.
 
 
+//jsdom for emailing pdf report
+import puppeteer from "puppeteer";
+
+
 //gun database
 //Database Structure:
 //gun.users.id
@@ -32,23 +36,22 @@ let gun = Gun({
   web: server
 });
 // let gun = Gun({web: server});
-
-// function array2object(arr) {
-//   var obj = {};
-// 	Gun.list.map(arr, function(v, f, t) {
-// 		if (Gun.list.is(v) || Gun.obj.is(v)) {
-//       obj[f] = array2object(v);
-//       return;
-// 		}
-//     if (isNaN(f)) obj[f] = v;
-//     else obj[f - 1] = v;
-// 	})
-// 	if (obj[0]) {
-//     obj.length = Object.keys(obj).sort().pop();
-//     obj.length++;
-// 	}
-//   return obj;
-// };
+function array2object(arr) {
+  var obj = {};
+	Gun.list.map(arr, function(v, f, t) {
+		if (Gun.list.is(v) || Gun.obj.is(v)) {
+      obj[f] = array2object(v);
+      return;
+		}
+    if (isNaN(f)) obj[f] = v;
+    else obj[f - 1] = v;
+	})
+	if (obj[0]) {
+    obj.length = Object.keys(obj).sort().pop();
+    obj.length++;
+	}
+  return obj;
+};
 
 
 //encryption-decryption
@@ -131,8 +134,8 @@ app.use((req, res, next) => {
       banner: {
         bg: {
           message: {
-            text: "",
-            color: ""
+            text: null,
+            color: null
           }
         }
       }
@@ -232,6 +235,7 @@ app.use((req, res, next) => {
     },
   };
   req.sent = null;//default on every session.
+  req.email = null;//default on every sesion.
 
   req.cookies.user = decrypt(req.cookies.user); //if no user cookie stored, then req.cookies.user = null; otherwise req.cookies.user = email;
 
@@ -275,6 +279,8 @@ app.use((req, res, next) => {
     req.cookies.user = req.body.data.object.billing_details.email;
   }
 
+  setTimeout(()=>{},100);
+  
   if (req.cookies.user) {
     gun.get("users").get(req.cookies.user).once(res => {
       if (res) {
@@ -287,7 +293,7 @@ app.use((req, res, next) => {
             res.redirect(req.url);
             req.sent = 1;//end express session.
           }
-        });// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
+        },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
       }
       if (!res) {
         next();
@@ -301,7 +307,6 @@ app.use((req, res, next) => {
 //home page rest endpoint
 app.use("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
   req.dom.page = "/";//it it at last to account for any session changes
-  console.log("HHHHHHHH",req.dom);
   req.dom.home.banner.bg.message.text = ""; //initialization
   
   if (req.query.homebannerbgmessage) {
@@ -384,7 +389,7 @@ app.use("/account/register", (req, res, next) => {
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
     req.dom.account.login.active = "ACTIVE";
-    res.redirect("/account/login?accountregisterconfirm=1");
+    res.redirect(`/account/login?accountregisterconfirm=${req.cookies.user}`);
     req.sent = 1;//end express session
   }
 
@@ -790,6 +795,7 @@ app.use("/report", upload.array(), (req, res, next) => {
   req.dom.report.full = null;//initialization
   req.dom.report.counter = 0;//initialization
   req.dom.page = "/report";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it. Setting it before other code helps set it before next() statement.
+  req.email = 1;//email all reports
 
   if (req.body.regno) {
     let temp = req.body.regno.split("-");
@@ -990,8 +996,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
           .then(res => {
             req.dom.report.vehicleandmothistory = res.body.Response.DataItems;
-            // if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(res.body.Response.DataItems);
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
             if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
               let time = Date.now();
@@ -1056,8 +1061,7 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
-            // if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(res.body.Response.DataItems);
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
             req.dom.report.full = res.body.Response.DataItems;
             req.dom.report.counter++;
             if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full && Object.keys(res.body.Response.DataItems).length) {
@@ -1172,9 +1176,8 @@ app.use((req, res, next) => {
   if(req.cookies.user) console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
-  // if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) gun.get("users").get(req.cookies.user).put(req.dom);//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
-  
+  if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
+
   let dom = `
     <!DOCTYPE html> 
     <html lang="en">
@@ -3100,8 +3103,8 @@ app.use((req, res, next) => {
                   </div>
                 </div>
               </div>
-              <div class="reportprinthide" style="display:grid;margin:0.5rem;border-radius:0.5rem;">
-                <div style="display:grid;justify-items:center;align-items:center;background-color:#f9d441;padding:0.5rem;cursor:pointer;font-weight:bold;text-align:center;font-size:1rem;" onclick="window.print()">
+              <div class="reportmenuprint reportprinthide" style="display:grid;margin:0.5rem;border-radius:0.5rem;">
+                <div class="reportmenuprintbutton" style="display:grid;justify-items:center;align-items:center;background-color:#f9d441;padding:0.5rem;cursor:pointer;font-weight:bold;text-align:center;font-size:1rem;" onclick="window.print()">
                   PRINT / DOWNLOAD REPORT AS PDF
                 </div>
               </div>
@@ -5159,6 +5162,39 @@ app.use((req, res, next) => {
     req.sent = 1;
     res.send(dom);
   }
+  
+  if (req.email){
+  // const browser = await puppeteer.launch();
+  // const page = await browser.newPage();
+  // await page.goto('https://example.com');
+  // await page.screenshot({ path: 'example.png' });
+  // await page.pdf({ path: 'hn.pdf', format: 'a4' });
+  // await browser.close();
+  
+  puppeteer.launch()
+  .then(browser =>{
+    browser.newPage()
+      .then(page =>{
+        page.goto("https://google.com");
+        page.screenshot({path: "AAAAAAAA.png"});
+        page.pdf({path: "AAAAAAA.pdf"});
+    })
+    browser.close();
+  })
+  
+//   (async () => {
+//   const browser = await puppeteer.launch();
+//   const page = await browser.newPage();
+//   await page.goto('https://news.ycombinator.com', {
+//     waitUntil: 'networkidle2',
+//   });
+//   await page.pdf({ path: 'hn.pdf', format: 'a4' });
+
+//   await browser.close();
+// })();
+  
+  }
+  
   if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
 });
 
