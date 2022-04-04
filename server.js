@@ -32,22 +32,23 @@ let gun = Gun({
   web: server
 });
 // let gun = Gun({web: server});
-function array2object(arr) {
-  var obj = {};
-	Gun.list.map(arr, function(v, f, t) {
-		if (Gun.list.is(v) || Gun.obj.is(v)) {
-      obj[f] = array2object(v);
-      return;
-		}
-    if (isNaN(f)) obj[f] = v;
-    else obj[f - 1] = v;
-	})
-	if (obj[0]) {
-    obj.length = Object.keys(obj).sort().pop();
-    obj.length++;
-	}
-  return obj;
-};
+
+// function array2object(arr) {
+//   var obj = {};
+// 	Gun.list.map(arr, function(v, f, t) {
+// 		if (Gun.list.is(v) || Gun.obj.is(v)) {
+//       obj[f] = array2object(v);
+//       return;
+// 		}
+//     if (isNaN(f)) obj[f] = v;
+//     else obj[f - 1] = v;
+// 	})
+// 	if (obj[0]) {
+//     obj.length = Object.keys(obj).sort().pop();
+//     obj.length++;
+// 	}
+//   return obj;
+// };
 
 
 //encryption-decryption
@@ -988,7 +989,8 @@ app.use("/report", upload.array(), (req, res, next) => {
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
           .then(res => {
             req.dom.report.vehicleandmothistory = res.body.Response.DataItems;
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
+            // if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(res.body.Response.DataItems);
             if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
               let time = Date.now();
@@ -1053,7 +1055,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
+            // if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
+            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(res.body.Response.DataItems);
             req.dom.report.full = res.body.Response.DataItems;
             req.dom.report.counter++;
             if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full && Object.keys(res.body.Response.DataItems).length) {
@@ -1168,7 +1171,8 @@ app.use((req, res, next) => {
   if(req.cookies.user) console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
   if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
+  // if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
+  if(req.cookies.user) gun.get("users").get(req.cookies.user).put(req.dom);//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
   
   let dom = `
     <!DOCTYPE html> 
