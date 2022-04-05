@@ -18,6 +18,9 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 //jsdom for emailing pdf report
 import puppeteer from "puppeteer";
 
+import fs from "fs";
+import path from "path";
+
 
 //gun database
 //Database Structure:
@@ -1656,6 +1659,7 @@ app.use((req, res, next) => {
               window.document.querySelector(".basicsection").style.display = "none";
               window.document.querySelector(".basicsectionunregistered").style.display = "grid";
               window.document.querySelector(".basicsectionunregisteredorder").value = dom.report.regno+"-basic";
+              window.document.querySelector(".reportbasic").classList.add("reportprinthide");
             }
 
             if (dom.report.vehicleandmothistory.VehicleRegistration) {
@@ -1760,6 +1764,7 @@ app.use((req, res, next) => {
               window.document.querySelector(".reportfull").style.display = "none";
               window.document.querySelector(".reportfullunregistered").style.display = "grid";
               window.document.querySelector(".fullsectionunregisteredorder").value = dom.report.regno+"-full";
+              window.document.querySelector(".reportfull").classList.add("reportprinthide");
             }
 
             if(dom.report.full){
@@ -3213,10 +3218,10 @@ app.use((req, res, next) => {
                   </div>
                 </div>
               </div>
-              <div class="reportpagebreak" style="display:none;">
-                &nbsp;
-              </div>  
               <div class="reportbasic basicsection" style="display:grid;grid-gap:0.5rem;">
+                <div class="reportpagebreak" style="display:none;">
+                  &nbsp;
+                </div>  
                 <div class="reportbasicregistration basicregistration" style="display:grid;grid-template-rows:auto auto;justify-self:center;width:100%;background:#2f2e2a;">
                   <div class="basicregistrationtitle" id="reportbasicregistrationdata" style="background:#f9d441;color:black;padding:0.5rem;font-size:1.5rem;">
                     REGISTRATION DATA
@@ -3843,6 +3848,9 @@ app.use((req, res, next) => {
                 </div>
               </div>
               <div class="basicsectionunregistered">
+                <div class="reportpagebreak" style="display:none;">
+                  &nbsp;
+                </div>  
                 <div style="background:#f9d441;color:black;padding:0.5rem;font-size:1.5rem;">
                   BASIC REPORT
                 </div>
@@ -4393,6 +4401,9 @@ app.use((req, res, next) => {
                 </div>
               </div>
               <div class="reportfullunregistered" style="display:grid;">
+                <div class="reportpagebreak" style="display:none;">
+                  &nbsp;
+                </div>
                 <div style="background:#f9d441;color:black;padding:0.5rem;font-size:1.5rem;">
                   FULL REPORT
                 </div>
@@ -5163,15 +5174,23 @@ app.use((req, res, next) => {
     res.send(dom);
   }
   
-  if (req.email){
+  if (req.email) {
     (async () => {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
-      await page.setContent(dom);
-      await page.pdf({ path: 'Report.pdf', format: 'a4' });
+      
+      fs.writeFileSync("Report.html",dom);
+      const pathToHtml = path.join(path.resolve(), "Report.html");
+      await page.goto(`file:${pathToHtml}`, { waitUntil: ["load", "networkidle0"] });
+      
+      // await page.setContent(dom,{waitUntil: ["load", "networkidle0"]});
+      await page.pdf({ path: 'Report.pdf'});
+      fs.unlinkSync(pathToHtml);
       await browser.close();
     })();
   }
+  
+
   
   if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
 });
