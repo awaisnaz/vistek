@@ -5164,35 +5164,13 @@ app.use((req, res, next) => {
   }
   
   if (req.email){
-  // const browser = await puppeteer.launch();
-  // const page = await browser.newPage();
-  // await page.goto('https://example.com');
-  // await page.screenshot({ path: 'example.png' });
-  // await page.pdf({ path: 'hn.pdf', format: 'a4' });
-  // await browser.close();
-  
-  puppeteer.launch()
-  .then(browser =>{
-    browser.newPage()
-      .then(page =>{
-        page.goto("https://google.com");
-        page.screenshot({path: "AAAAAAAA.png"});
-        page.pdf({path: "AAAAAAA.pdf"});
-    })
-    browser.close();
-  })
-  
-//   (async () => {
-//   const browser = await puppeteer.launch();
-//   const page = await browser.newPage();
-//   await page.goto('https://news.ycombinator.com', {
-//     waitUntil: 'networkidle2',
-//   });
-//   await page.pdf({ path: 'hn.pdf', format: 'a4' });
-
-//   await browser.close();
-// })();
-  
+    (async () => {
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.setContent(dom);
+      await page.pdf({ path: 'Report.pdf', format: 'a4' });
+      await browser.close();
+    })();
   }
   
   if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
