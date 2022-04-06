@@ -16,7 +16,7 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 
 
 //jsdom for emailing pdf report
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-firefox";
 
 import fs from "fs";
 import fsPromises from "fs/promises";
@@ -5217,7 +5217,7 @@ app.use((req, res, next) => {
     res.send(dom);
   }
   
-  console.log("req.email",req.email);
+  console.log("REQ.EMAIL",req.email);
   if (req.email) {
     (async () => {
       const browser = await puppeteer.launch();
