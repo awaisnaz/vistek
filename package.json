@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "",
-    "start": "curl https://intoli.com/install-google-chrome.sh | bash && node server.js"
+    "start": "node server.js"
   },
   "keywords": [
     "\"vehicle",
