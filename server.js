@@ -5217,7 +5217,7 @@ app.use((req, res, next) => {
     res.send(dom);
   }
   
-  if (0 && req.email) {
+  if (req.email) {
     (async () => {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
