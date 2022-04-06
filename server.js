@@ -17,6 +17,7 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 
 //jsdom for emailing pdf report
 import puppeteer from "puppeteer";
+// import phantom from "phantom";
 
 import fs from "fs";
 import fsPromises from "fs/promises";
@@ -5230,6 +5231,24 @@ app.use((req, res, next) => {
       if (req.cookies.user) sendemail(req.cookies.user, "Attached is your VISTEK Report.", [{filename: "Report.pdf", path: pathToHtml}]);
       await browser.close();
     })();
+    
+    
+
+    // (async function() {
+    //     const instance = await phantom.create();
+    //     const page = await instance.createPage();
+    //     fs.writeFileSync("./assets/Report.html", dom);
+    //     let pathToHtml = path.join(path.resolve(), "/assets/Report.html");
+    
+    //     // await page.property('viewportSize', {width: 1024, height: 600});
+    //     const status = await page.open(`file:${pathToHtml}`, { waitUntil: ["load", "networkidle0"] });
+    //     console.log(`Page opened with status [${status}].`);
+    
+    //     await page.render('./assets/Report.pdf');
+    //     console.log(`File created at [./stackoverflow.pdf]`);
+    
+    //     await instance.exit();
+    // }());
   }
   
   if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
