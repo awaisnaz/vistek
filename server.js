@@ -16,7 +16,7 @@ let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("
 
 
 //jsdom for emailing pdf report
-import puppeteer from "puppeteer-firefox";
+import puppeteer from "puppeteer";
 
 import fs from "fs";
 import fsPromises from "fs/promises";
