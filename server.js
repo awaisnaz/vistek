@@ -5220,11 +5220,7 @@ app.use((req, res, next) => {
   
   if (req.email) {
     (async () => {
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: path.join(path.resolve(), "/node_modules/puppeteer/.local-chromium/linux-970485/chrome-linux/chrome"),
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
+      const browser = await puppeteer.launch();
       const page = await browser.newPage();
       fs.writeFileSync("./assets/Report.html", dom);
       let pathToHtml = path.join(path.resolve(), "/assets/Report.html");
