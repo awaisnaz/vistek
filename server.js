@@ -12,6 +12,7 @@ app.use(express.urlencoded({extended: true})); //populates req.body with form da
 app.use(express.static('assets')); // makes a subfolder for static files.
 app.use(compression());
 let upload = multer(); // populates req.body with upload form data.
+process.env.DOMAIN = "http://18.134.73.1:8080/";
 let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("server started.")); //Start the server. heroku adds env automatically so process.env.PORT is necessary.
 
 
@@ -116,7 +117,7 @@ let stripe = Stripe("sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQx
 gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
   if (!res) {
     stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-      url: 'http://vistek.eu-west-2.elasticbeanstalk.com/webhook',
+      url: `${process.env.DOMAIN}/webhook`,
       enabled_events: [
         'charge.failed',
         'charge.succeeded',
@@ -489,7 +490,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
+              images: [`${process.env.DOMAIN}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -497,8 +498,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -519,7 +520,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
+              images: [`${process.env.DOMAIN}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -527,8 +528,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
+      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -549,7 +550,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
+              images: [`${process.env.DOMAIN}/reportmulti.jpg`],
             },
             unit_amount: 1445,
           },
@@ -557,8 +558,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagemulti=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
+      success_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagemulti=1`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -651,7 +652,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
+              images: [`${process.env.DOMAIN}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -659,8 +660,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1",
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
+      success_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagebasic=1`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -681,7 +682,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
+              images: [`${process.env.DOMAIN}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -689,8 +690,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagefull=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
+      success_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagefull=1`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -711,7 +712,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
+              images: [`${process.env.DOMAIN}/reportmulti.jpg`],
             },
             unit_amount: 1445,
           },
@@ -719,8 +720,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagemulti=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
+      success_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagemulti=1`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -826,7 +827,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
+              images: [`${process.env.DOMAIN}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -834,8 +835,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.basicsectionunregisteredorder}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -856,7 +857,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
+              images: [`${process.env.DOMAIN}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -864,8 +865,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.fullsectionunregisteredorder}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}`,
+      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
