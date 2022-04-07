@@ -1,4 +1,25 @@
 //////////////////////////////////////////////////INITIALIZATION//////////////////////////////////////////////////////////////////////
+
+//ENVIRONMENT VARIABLES
+process.env.APPDOMAIN = "http://18.134.73.1:8080/";
+process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
+process.env.APPS3SECRET = "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";
+process.env.APPS3BUCKET = "vistek";
+process.env.CRYPTOVERIFICATIONENCRYPTIONKEY = "nVRQO_K1GVt}yH1Plkl9?V~EWu-/1y67";
+process.env.CRYPTOVERIFICATIONENCRYPTIONVECTOR = "MIGeMA0GCSqGSIb3";
+process.env.EMAILUSER = "support@vehicleinformationsystem.com";
+process.env.EMAILPASS = "Spring@202!";
+process.env.EMAILHOST = "smtpout.secureserver.net";
+process.env.EMAILPORT = 465; //465 for ssl, 587 for non-ssl
+process.env.EMAILSECURE = true; // true means use SSL
+process.env.EMAILFROM = "VISTEK - Vehicle Information Systems <support@vehicleinformationsystem.com>";
+process.env.EMAILSUBJECT = "Message from VISTEK - Vehicle Information Systems";
+process.env.STRIPEKEY = "sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQxDy7SwyNaE1ubfjrEyc9XQ8BgPiYgGHcQ96zeY600pJwvegb9";
+process.env.APPMESSAGEERRORCOLOR = "#B00020";
+process.env.APPMESSAGEINFOCOLOR = "#6200EE";
+
+console.log(process.env);
+
 //express
 import express from "express"; //main REST API handler
 import multer from "multer"; // populates req.body with upload form data.
@@ -12,7 +33,6 @@ app.use(express.urlencoded({extended: true})); //populates req.body with form da
 app.use(express.static('assets')); // makes a subfolder for static files.
 app.use(compression());
 let upload = multer(); // populates req.body with upload form data.
-process.env.DOMAIN = "http://18.134.73.1:8080/";
 let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("server started.")); //Start the server. heroku adds env automatically so process.env.PORT is necessary.
 
 
@@ -35,9 +55,9 @@ import "gun/lib/load.js";//load returns the full hierarchy, not just first depth
 import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
 let gun = Gun({
   s3: { // Optional; update to save a copy to AWS S3
-    key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
-    secret: '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', // AWS Secret Token
-    bucket: 'vistek' // The bucket you want to save into
+    key: process.env.APPS3KEY, // AWS Access Key
+    secret: process.env.APPS3SECRET, // AWS Secret Token
+    bucket: process.env.APPS3BUCKET // The bucket you want to save into
   },
   web: server
 });
@@ -62,16 +82,14 @@ function array2object(arr) {
 
 //encryption-decryption
 import crypto from "crypto"; //to make email verification using encrypted key. It is builtin into node.
-let emailverificationencryptionkey = "nVRQO_K1GVt}yH1Plkl9?V~EWu-/1y67"; //email verification encruption key
-let emailverificationencryptionvector = "MIGeMA0GCSqGSIb3"; //email verification encruption key
 function encrypt(data) {
-	const cipher = crypto.createCipheriv("aes-256-cbc", emailverificationencryptionkey, emailverificationencryptionvector)
+	const cipher = crypto.createCipheriv("aes-256-cbc", process.env.CRYPTOVERIFICATIONENCRYPTIONKEY, process.env.CRYPTOVERIFICATIONENCRYPTIONVECTOR)
 	let encryptedData = cipher.update(data, 'utf-8', 'hex')
 	encryptedData += cipher.final('hex')
 	return encryptedData
 }
 function decrypt(data){
-  const decipher = crypto.createDecipheriv("aes-256-cbc", emailverificationencryptionkey, emailverificationencryptionvector);
+  const decipher = crypto.createDecipheriv("aes-256-cbc", process.env.CRYPTOVERIFICATIONENCRYPTIONKEY, process.env.CRYPTOVERIFICATIONENCRYPTIONVECTOR);
   if (data) {
     let decryptedData = decipher.update(data, 'hex', 'utf-8');
     decryptedData += decipher.final('utf-8');
@@ -85,21 +103,21 @@ import nodemailer from "nodemailer";
 function sendemail(receiver, message, attachments){
   nodemailer
     .createTransport({
-      "host": "smtpout.secureserver.net",
-      "port": 465, //465 for ssl, 587 for non-ssl
-      "secure": true, // true means use SSL
+      "host": process.env.EMAILHOST,
+      "port": process.env.EMAILPORT,
+      "secure": process.env.EMAILSECURE
       "auth": {
-        "user": "support@vehicleinformationsystem.com",
-        "pass": "Spring@202!",
+        "user": process.env.EMAILUSER,
+        "pass": process.env.EMAILPASS,
       },
       "tls": {
         "rejectUnauthorized": false // do not fail on invalid certs
       }
     })
     .sendMail({
-      "from": `VISTEK - Vehicle Information Systems <support@vehicleinformationsystem.com>`,
+      "from": process.env.EMAILFROM,
       "to": `${receiver}`, 
-      "subject": "Message from VISTEK - Vehicle Information Systems",
+      "subject": process.env.EMAILSUBJECT,
       "html": message,
       "attachments": attachments
     }, (error) => {
@@ -113,11 +131,11 @@ import superagent from "superagent";
 
 //stripe api
 import Stripe from "stripe";
-let stripe = Stripe("sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQxDy7SwyNaE1ubfjrEyc9XQ8BgPiYgGHcQ96zeY600pJwvegb9");
+let stripe = Stripe(process.env.STRIPEKEY);
 gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
   if (!res) {
     stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-      url: `${process.env.DOMAIN}/webhook`,
+      url: `${process.env.APPDOMAIN}/webhook`,
       enabled_events: [
         'charge.failed',
         'charge.succeeded',
@@ -320,7 +338,7 @@ app.use("/", (req, res, next) => {// .get is required so it does not mess by set
   
   if (req.query.homebannerbgmessage) {
     req.dom.home.banner.bg.message.text = "Please enter Vehicle Registration Number above to get its Report.";
-    req.dom.home.banner.bg.message.color = "#B00020";
+    req.dom.home.banner.bg.message.color = process.env.APPMESSAGEERRORCOLOR;
   }
   
   next();
@@ -338,17 +356,17 @@ app.use("/account/login", (req, res, next) => {
 
   if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() <= req.dom.account.login.last + 1000) {
     req.dom.account.login.message.text = "You have performed too many login attempts in a short span of time, please wait some time before logging in again.";
-    req.dom.account.login.message.color = "#B00020";
+    req.dom.account.login.message.color = process.env.APPMESSAGEERRORCOLOR;
   }
 
   if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() >= req.dom.account.login.last + 1000) {
     if (req.body.accountloginpassword != decrypt(req.dom.dashboard.profile.password)) {
       req.dom.account.login.message.text = "You have entered wrong email or password, please re-enter the correct email/password.";
-      req.dom.account.login.message.color = "#B00020";
+      req.dom.account.login.message.color = process.env.APPMESSAGEERRORCOLOR;
     }
     if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && !req.dom.account.login.active) {
       req.dom.account.login.message.text = "You have not verified your email address yet. Please check your email and click on the confirmation link to verify your email address, to use the Vehicle Information System (VIS).";
-      req.dom.account.login.message.color = "#B00020";
+      req.dom.account.login.message.color = process.env.APPMESSAGEERRORCOLOR;
     }
     if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && req.dom.account.login.active) {
       req.dom.account.login.status = 1;
@@ -358,11 +376,11 @@ app.use("/account/login", (req, res, next) => {
   }
   if (req.query.accountregisterconfirm) { 
     req.dom.account.login.message.text = "You have successfully registered and activated your account. Please login to continue to the dashboard.";
-    req.dom.account.login.message.color = "#6200EE";
+    req.dom.account.login.message.color = process.env.APPMESSAGEINFOCOLOR;
   }
   if (req.query.accountresetconfirm) { 
     req.dom.account.login.message.text = "You have successfully reset your account password. Please login to continue to the dashboard.";
-    req.dom.account.login.message.color = "#6200EE";
+    req.dom.account.login.message.color = ;
   }
 
   req.dom.account.login.last = Date.now();
@@ -390,7 +408,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.dashboard.balance.full = 0;
     req.dom.dashboard.reports.cars = {};
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
-    req.dom.account.register.message.color = "#6200EE";
+    req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
     if (req.hostname == "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
     if (req.hostname != "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
@@ -418,7 +436,7 @@ app.use("/account/reset", (req, res, next) => {
 
   if (req.body.accountresetemail) {
     req.dom.account.reset.message.text = "Please check your email, and click on the email verification link, to change your password. The password will remain unchanged without email verification.";
-    req.dom.account.reset.message.color = "#6200EE";
+    req.dom.account.reset.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.hostname == "localhost") sendemail(req.cookies.user,`click <a href="http://${req.headers.host}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
     if (req.hostname != "localhost") sendemail(req.cookies.user,`click <a href="https://${req.hostname}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
   }
@@ -490,7 +508,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: [`${process.env.DOMAIN}/reportbasic.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -498,8 +516,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -520,7 +538,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: [`${process.env.DOMAIN}/reportfull.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -528,8 +546,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -550,7 +568,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: [`${process.env.DOMAIN}/reportmulti.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportmulti.jpg`],
             },
             unit_amount: 1445,
           },
@@ -558,8 +576,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagemulti=1`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagemulti=1`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -652,7 +670,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: [`${process.env.DOMAIN}/reportbasic.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -660,8 +678,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagebasic=1`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
+      success_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagebasic=1`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -682,7 +700,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: [`${process.env.DOMAIN}/reportfull.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -690,8 +708,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagefull=1`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
+      success_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagefull=1`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -712,7 +730,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: [`${process.env.DOMAIN}/reportmulti.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportmulti.jpg`],
             },
             unit_amount: 1445,
           },
@@ -720,8 +738,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagemulti=1`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
+      success_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagemulti=1`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -827,7 +845,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: [`${process.env.DOMAIN}/reportbasic.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -835,8 +853,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -857,7 +875,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: [`${process.env.DOMAIN}/reportfull.jpg`],
+              images: [`${process.env.APPDOMAIN}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -865,8 +883,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.DOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}`,
-      cancel_url: `${process.env.DOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -1109,7 +1127,7 @@ app.use("/report", upload.array(), (req, res, next) => {
 app.use("/contact", (req, res, next) => {
   if (req.body.email) {
     req.dom.contact.message.text = "We have received your message and will contact back soon.";
-    req.dom.contact.message.color = "#6200EE";
+    req.dom.contact.message.color = process.env.APPMESSAGEINFOCOLOR;
     sendemail("info@teknikality.com", `${req.body.email} has send you a message: ${req.body.message}`);
   }
   else { 
