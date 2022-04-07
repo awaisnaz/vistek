@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "",
-    "start": "node server.js"
+    "start": "node server.js && sudo yum install libatk-1.0.so.0"
   },
   "keywords": [
     "\"vehicle",
