@@ -1,1194 +1,4 @@
-//////////////////////////////////////////////////INITIALIZATION//////////////////////////////////////////////////////////////////////
-//express
-import express from "express"; //main REST API handler
-import multer from "multer"; // populates req.body with upload form data.
-import cookieparser from "cookie-parser"; //populates req.cookies.
-import compression from "compression";
-let app = express(); //initializing express instance.
-app.disable('x-powered-by');//it can for for XSS attacks.
-app.use(cookieparser());// populates req.cookies.
-app.use(express.json()); //process json in the body of the html.
-app.use(express.urlencoded({extended: true})); //populates req.body with form data.
-app.use(express.static('assets')); // makes a subfolder for static files.
-app.use(compression());
-let upload = multer(); // populates req.body with upload form data.
-let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("server started.")); //Start the server. heroku adds env automatically so process.env.PORT is necessary.
 
-
-//jsdom for emailing pdf report
-import puppeteer from "puppeteer";
-// import phantom from "phantom";
-
-import fs from "fs";
-import fsPromises from "fs/promises";
-import path from "path";
-
-
-//gun database
-//Database Structure:
-//gun.users.id
-//gun.vehicles.id
-//gun.webhooks.id 
-import Gun from "gun";// gun stores null, not undefined. Can not store object if a string or null is already stored on a node, it fails silently. gun does not have event loop, thus it may ignore crud operations if busy. gun can not save arrays, so use the listed functions below to save/retrieve arrays, ".put(array2object(document))", and "Object.keys(resp.arraylist).map((key) => resp.arraylist[key])".
-import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
-import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
-let gun = Gun({
-  s3: { // Optional; update to save a copy to AWS S3
-    key: 'AKIAXPDPHMRN4YDG7R5S', // AWS Access Key
-    secret: '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', // AWS Secret Token
-    bucket: 'vistek' // The bucket you want to save into
-  },
-  web: server
-});
-// let gun = Gun({web: server});
-function array2object(arr) {
-  var obj = {};
-	Gun.list.map(arr, function(v, f, t) {
-		if (Gun.list.is(v) || Gun.obj.is(v)) {
-      obj[f] = array2object(v);
-      return;
-		}
-    if (isNaN(f)) obj[f] = v;
-    else obj[f - 1] = v;
-	})
-	if (obj[0]) {
-    obj.length = Object.keys(obj).sort().pop();
-    obj.length++;
-	}
-  return obj;
-};
-
-
-//encryption-decryption
-import crypto from "crypto"; //to make email verification using encrypted key. It is builtin into node.
-let emailverificationencryptionkey = "nVRQO_K1GVt}yH1Plkl9?V~EWu-/1y67"; //email verification encruption key
-let emailverificationencryptionvector = "MIGeMA0GCSqGSIb3"; //email verification encruption key
-function encrypt(data) {
-	const cipher = crypto.createCipheriv("aes-256-cbc", emailverificationencryptionkey, emailverificationencryptionvector)
-	let encryptedData = cipher.update(data, 'utf-8', 'hex')
-	encryptedData += cipher.final('hex')
-	return encryptedData
-}
-function decrypt(data){
-  const decipher = crypto.createDecipheriv("aes-256-cbc", emailverificationencryptionkey, emailverificationencryptionvector);
-  if (data) {
-    let decryptedData = decipher.update(data, 'hex', 'utf-8');
-    decryptedData += decipher.final('utf-8');
-    return decryptedData;
-  }
-  else return null;
-}
-
-//email
-import nodemailer from "nodemailer";
-function sendemail(receiver, message, attachments){
-  nodemailer
-    .createTransport({
-      "host": "smtpout.secureserver.net",
-      "port": 465, //465 for ssl, 587 for non-ssl
-      "secure": true, // true means use SSL
-      "auth": {
-        "user": "support@vehicleinformationsystem.com",
-        "pass": "Spring@202!",
-      },
-      "tls": {
-        "rejectUnauthorized": false // do not fail on invalid certs
-      }
-    })
-    .sendMail({
-      "from": `VISTEK - Vehicle Information Systems <support@vehicleinformationsystem.com>`,
-      "to": `${receiver}`, 
-      "subject": "Message from VISTEK - Vehicle Information Systems",
-      "html": message,
-      "attachments": attachments
-    }, (error) => {
-      if(error) console.log(error);
-      if(!error) console.log('Email sent.');
-    });
-};
-
-//superagent fetch
-import superagent from "superagent";
-
-//stripe api
-import Stripe from "stripe";
-let stripe = Stripe("sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQxDy7SwyNaE1ubfjrEyc9XQ8BgPiYgGHcQ96zeY600pJwvegb9");
-gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
-  if (!res) {
-    stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-      url: 'http://vistek.eu-west-2.elasticbeanstalk.com/webhook',
-      enabled_events: [
-        'charge.failed',
-        'charge.succeeded',
-      ],
-    }).then(res => {
-      gun.get("webhooks").get("stripe").put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
-        "id": res.id,
-        "url": res.url
-      });
-      console.log("stripe webhook created");
-    });
-  }
-});
-
-////////////////////////////////////// APP ENDPOINTS //////////////////////////////////////////////////
-app.use((req, res, next) => {
-  req.timestamp = Date.now();
-  req.dom = {//req stores values from previous request sessions, so need to initialize it on every request. Initializing the dom variable to null otherwise, error occurs of reading/writing attirbute of undefined nested object in if statements and crud code.
-    page: null,
-    home: {
-      banner: {
-        bg: {
-          message: {
-            text: null,
-            color: null
-          }
-        }
-      }
-    },
-    account: {
-      login: {
-        active: null,
-        status: null,
-        role: null,
-        last: 0,
-        message: {
-          text: null,
-          color: null
-        }
-      },
-      register: {
-        message: {
-          text: null,
-          color: null
-        }
-      },
-      reset: {
-        message: {
-          text: null,
-          color: null
-        }
-      }
-    },
-    dashboard: {
-      reports: {
-        balance: {
-          message: {
-            text: "",
-            color: ""
-          }
-        },
-        add: {
-          message: {
-            text: "",
-            color: ""
-          }
-        },
-        search: {
-          regno: null,
-          message: {
-            text: "",
-            color: ""
-          }
-        },
-        cars: {},
-        page: 1
-      },
-      balance: {
-        basic: 0,
-        full: 0,
-        message: {
-          text: null,
-          color: null
-        },
-        transactions: {}
-      },
-      profile: {
-        name: null,
-        email: null,
-        contact: null,
-        password: null,
-        message: {
-          text: null,
-          color: null
-        }
-      }
-    },
-    admin: {
-      root: null,
-      id: null,
-      json: {},
-      message: "",          
-    },
-    report: {
-      regno: null,
-      mode: null,
-      dvla: null,
-      basic: {
-        valuation: null,
-        vehicleandmothistory: {
-          VehicleRegistration: null,
-          MotHistory: {
-            RecordList: null
-          }
-        }
-      },
-      full: null
-    },
-    contact: {
-      message: {
-        text: null,
-        color: null
-      }
-    },
-  };
-  req.sent = null;//default on every session.
-  req.email = null;//default on every sesion.
-
-  req.cookies.user = decrypt(req.cookies.user); //if no user cookie stored, then req.cookies.user = null; otherwise req.cookies.user = email;
-
-  if (req.body.accountloginemail) {
-    req.body.accountloginemail = req.body.accountloginemail.toUpperCase();
-    req.cookies.user = req.body.accountloginemail;
-    res.cookie("user", encrypt(req.body.accountloginemail));
-    res.cookie("cookie", 0);
-  }
-
-  if (req.body.accountregisteremail) {
-    req.body.accountregisteremail = req.body.accountregisteremail.toUpperCase();
-    req.cookies.user = req.body.accountregisteremail;
-    res.cookie("user", encrypt(req.body.accountregisteremail));
-    res.cookie("cookie", 0);
-  }
-
-  if (req.query.accountregisterconfirm) {
-    req.query.accountregisterconfirm = req.query.accountregisterconfirm.toUpperCase();
-    req.cookies.user = req.query.accountregisterconfirm;
-    res.cookie("user", encrypt(req.query.accountregisterconfirm));
-    res.cookie("cookie", 0);
-  }
-
-  if (req.body.accountresetemail) {
-    req.body.accountresetemail = req.body.accountresetemail.toUpperCase();
-    req.cookies.user = req.body.accountresetemail;
-    res.cookie("user", encrypt(req.body.accountresetemail));
-    res.cookie("cookie", 0);
-  }
-
-  if (req.query.accountresetconfirm) {
-    req.query.accountresetconfirm = req.query.accountresetconfirm.toUpperCase();
-    req.cookies.user = req.query.accountresetconfirm;
-    res.cookie("user", encrypt(req.query.accountresetconfirm));
-    res.cookie("cookie", 0);
-  }
-
-  if (req.url == "/webhook" && req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email) {
-    req.body.data.object.billing_details.email = req.body.data.object.billing_details.email.toUpperCase();
-    req.cookies.user = req.body.data.object.billing_details.email;
-  }
-
-  setTimeout(()=>{},100);
-  
-  if (req.cookies.user) {
-    gun.get("users").get(req.cookies.user).once(res => {
-      if (res) {
-        gun.get("users").get(req.cookies.user).load(res => {
-          if (res) {
-            req.dom = res;
-            next();
-          }
-          if (!res) {//if database malfunctions, and doesn't return anything then redirect
-            res.redirect(req.url);
-            req.sent = 1;//end express session.
-          }
-        },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
-      }
-      if (!res) {
-        next();
-      }
-    });//gun.load hangs if gun.once is not called before it.    
-  }
-
-  if (!req.cookies.user) next();
-});
-
-//home page rest endpoint
-app.use("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
-  req.dom.page = "/";//it it at last to account for any session changes
-  req.dom.home.banner.bg.message.text = ""; //initialization
-  
-  if (req.query.homebannerbgmessage) {
-    req.dom.home.banner.bg.message.text = "Please enter Vehicle Registration Number above to get its Report.";
-    req.dom.home.banner.bg.message.color = "#B00020";
-  }
-  
-  next();
-});
-
-app.use("/account/login", (req, res, next) => {
-  if(req.body.accountloginemail) req.body.accountloginemail = req.body.accountloginemail.toUpperCase();
-  
-  if (req.dom.account.login.status) {
-    res.redirect("/dashboard/reports");
-    req.sent = 1;//end express session
-  }
-
-  req.dom.account.login.message.text = null;//initialization
-
-  if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() <= req.dom.account.login.last + 1000) {
-    req.dom.account.login.message.text = "You have performed too many login attempts in a short span of time, please wait some time before logging in again.";
-    req.dom.account.login.message.color = "#B00020";
-  }
-
-  if (req.body.accountloginemail && req.body.accountloginpassword && Date.now() >= req.dom.account.login.last + 1000) {
-    if (req.body.accountloginpassword != decrypt(req.dom.dashboard.profile.password)) {
-      req.dom.account.login.message.text = "You have entered wrong email or password, please re-enter the correct email/password.";
-      req.dom.account.login.message.color = "#B00020";
-    }
-    if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && !req.dom.account.login.active) {
-      req.dom.account.login.message.text = "You have not verified your email address yet. Please check your email and click on the confirmation link to verify your email address, to use the Vehicle Information System (VIS).";
-      req.dom.account.login.message.color = "#B00020";
-    }
-    if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && req.dom.account.login.active) {
-      req.dom.account.login.status = 1;
-      res.redirect("/dashboard/reports");
-      req.sent = 1;//end express session
-    }
-  }
-  if (req.query.accountregisterconfirm) { 
-    req.dom.account.login.message.text = "You have successfully registered and activated your account. Please login to continue to the dashboard.";
-    req.dom.account.login.message.color = "#6200EE";
-  }
-  if (req.query.accountresetconfirm) { 
-    req.dom.account.login.message.text = "You have successfully reset your account password. Please login to continue to the dashboard.";
-    req.dom.account.login.message.color = "#6200EE";
-  }
-
-  req.dom.account.login.last = Date.now();
-  req.dom.page = "/account/login";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/account/register", (req, res, next) => {
-  if(req.body.accountregisteremail) req.body.accountregisteremail = req.body.accountregisteremail.toUpperCase();
-  if(req.body.accountregistername) req.body.accountregistername = req.body.accountregistername.toUpperCase();
-  
-  if (req.dom.account.login.status) {
-    res.redirect("/dashboard/reports");
-    req.sent = 1;//end express session
-  }
-  
-  req.dom.account.register.message.text = null;//initialization
-
-  if (req.body.accountregisteremail && req.body.accountregisterpassword) {
-    req.dom.dashboard.profile.name = req.body.accountregistername ? req.body.accountregistername : "User";
-    req.dom.dashboard.profile.email = req.cookies.user ? req.cookies.user : "user@example.com";
-    req.dom.dashboard.profile.contact = req.body.accountregistercontact ? req.body.accountregistercontact : "";
-    req.dom.dashboard.profile.password = encrypt(req.body.accountregisterpassword);
-    req.dom.dashboard.balance.basic = 0;
-    req.dom.dashboard.balance.full = 0;
-    req.dom.dashboard.reports.cars = {};
-    req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
-    req.dom.account.register.message.color = "#6200EE";
-    if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
-    if (req.hostname == "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
-    if (req.hostname != "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
-  }
-
-  if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
-    req.dom.account.login.active = "ACTIVE";
-    res.redirect(`/account/login?accountregisterconfirm=${req.cookies.user}`);
-    req.sent = 1;//end express session
-  }
-
-  req.dom.page = "/account/register";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/account/reset", (req, res, next) => {
-  if(req.body.accountresetemail) req.body.accountresetemail = req.body.accountresetemail.toUpperCase();  
-  
-  if (req.dom.account.login.status) {
-    res.redirect("/dashboard/reports");
-    req.sent = 1;//end express session
-  }
-
-  req.dom.account.reset.message.text = null;//initialization
-
-  if (req.body.accountresetemail) {
-    req.dom.account.reset.message.text = "Please check your email, and click on the email verification link, to change your password. The password will remain unchanged without email verification.";
-    req.dom.account.reset.message.color = "#6200EE";
-    if (req.hostname == "localhost") sendemail(req.cookies.user,`click <a href="http://${req.headers.host}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
-    if (req.hostname != "localhost") sendemail(req.cookies.user,`click <a href="https://${req.hostname}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
-  }
-
-  if (req.query.accountresetconfirm && req.query.accountresetconfirm  == decrypt(req.query.token)) {
-    req.dom.dashboard.profile.password = req.query.accountresetpassword;
-    sendemail(req.cookies.user, `Your password has been reset. If this was you, you can safely ignore this email.`);
-    res.redirect("/account/login?accountresetconfirm=1");
-    req.sent = 1;//end express session
-  }
-
-  req.dom.page = "/account/reset";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/account/logout", (req, res, next) => {
-  if (req.dom.account.login.status) {
-    res.redirect("/dashboard/reports");
-    req.sent = 1;//end express session
-  }
-
-  req.dom.account.login.status = null;
-  req.dom.page = "/account/login";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-//dashboard page rest endpoint
-app.use("/dashboard/reports", (req, res, next) => {
-  req.dom.page = "/dashboard/reports";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  req.dom.dashboard.reports.add.message.text = null;//initialization
-  req.dom.dashboard.reports.search.regno = null;//initialization
-  req.dom.dashboard.reports.search.message.text = null;//initialization
-  if(req.body.dashboardreportsregno) req.body.dashboardreportsregno = req.body.dashboardreportsregno.toUpperCase();//initialization
-  if(req.body.dashboardreportssearch) req.body.dashboardreportssearch = req.body.dashboardreportssearch.toUpperCase();//initialization
-  
-
-  if (!req.dom.account.login.status) {
-    res.redirect("/account/login");
-    req.sent = 1;//end express session
-    next();
-  }
-  
-  if (req.query.dashboardreportsbalancemessagebasic) {
-    req.dom.dashboard.reports.balance.message.text = "Single Basic Report Credit has been added to your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
-  }
-
-  if (req.query.dashboardreportsbalancemessagefull) {
-    req.dom.dashboard.reports.balance.message.text = "1 Full Report Credit has been added to your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
-  }
-
-  if (req.query.dashboardreportsbalancemessagemulti) {
-    req.dom.dashboard.reports.balance.message.text = "3 Full Report Credits have been added to your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
-  }
-
-  if (req.query.dashboardreportsbalancemessagecancel) {
-    req.dom.dashboard.reports.balance.message.text = "Your transaction has been cancelled and your card was not charged, nor any balance were settled at your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF6679";
-  }
-  
-  if (req.body.dashboardreportsbalanceaddbasic) {
-    stripe.checkout.sessions.create({
-      customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'BASIC VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
-            },
-            unit_amount: 249,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  if (req.body.dashboardreportsbalanceaddfull) {
-    stripe.checkout.sessions.create({
-      customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'FULL VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
-            },
-            unit_amount: 799,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  if (req.body.dashboardreportsbalanceaddmulti) {
-    stripe.checkout.sessions.create({
-      customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'MULTIPLE VIS REPORTS',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
-            },
-            unit_amount: 1445,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagemulti=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  if (req.body.dashboardreportsaddcar) {
-    superagent
-      .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
-      .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
-      .set('Content-Type', 'application/json')
-      .send({ registrationNumber: `${req.body.dashboardreportsregno}` })
-      .then(res => {
-        req.dom.dashboard.reports.cars[req.body.dashboardreportsregno] = {
-          "timestamp": Date.now(),
-          "basic": 0,
-          "full": 0
-        };
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-        req.dom.dashboard.reports.add.message.text = `ERROR! This Vehicle Registration Number does not exist: ${req.body.dashboardreportsregno}. Please Add Correct Vehicle Number Or Contact Us For Support.`;
-        req.dom.dashboard.reports.add.message.color = "#CF6679";
-        next();
-      });
-  }
-
-  if (req.body.dashboardreportssearch) {
-    superagent
-      .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
-      .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
-      .set('Content-Type', 'application/json')
-      .send({ registrationNumber: `${req.body.dashboardreportssearch}` })
-      .then(res => {
-        req.dom.dashboard.reports.search.regno = req.body.dashboardreportssearch;
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-        req.dom.dashboard.reports.search.message.text = `ERROR! This Vehicle Registration Number does not exist: ${req.body.dashboardreportssearch}. Please Add Correct Vehicle Number Or Contact Us For Support.`;
-        req.dom.dashboard.reports.search.message.color = "#CF6679";
-        next();
-      });
-  }
-  
-  if(!req.body.dashboardreportsbalanceaddbasic && !req.body.dashboardreportsbalanceaddfull && !req.body.dashboardreportsbalanceaddmulti && !req.body.dashboardreportsaddcar && !req.body.dashboardreportssearch) next();
-});
-
-app.use("/dashboard/balance", (req, res, next) => {
-
-  if (!req.dom.account.login.status) {
-    res.redirect("/account/login");
-    req.sent = 1;//end express session
-  }
-
-  req.dom.dashboard.balance.message.text = null;
-
-  if (req.query.dashboardbalancemessagebasic) {
-    req.dom.dashboard.balance.message.text = "Single Basic Report Credit has been added to your account.";
-    req.dom.dashboard.balance.message.color = "#CF9AFF";
-  }
-
-  if (req.query.dashboardbalancemessagefull) {
-    req.dom.dashboard.balance.message.text = "1 Full Report Credit has been added to your account.";
-    req.dom.dashboard.balance.message.color = "#CF9AFF";
-  }
-
-  if (req.query.dashboardbalancemessagemulti) {
-    req.dom.dashboard.balance.message.text = "3 Full Report Credits have been added to your account.";
-    req.dom.dashboard.balance.message.color = "#CF9AFF";
-  }
-
-  if (req.query.dashboardbalancemessagecancel) {
-    req.dom.dashboard.balance.message.text = "Your transaction has been cancelled and your card was not charged, nor any balance were settled at your account.";
-    req.dom.dashboard.balance.message.color = "#CF6679";
-  }
-
-  if (req.body.dashboardbalanceaddbasic) {
-    stripe.checkout.sessions.create({
-      customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'BASIC VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
-            },
-            unit_amount: 249,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagebasic=1",
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  if (req.body.dashboardbalanceaddfull) {
-    stripe.checkout.sessions.create({
-      customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'FULL VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
-            },
-            unit_amount: 799,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagefull=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  if (req.body.dashboardbalanceaddmulti) {
-    stripe.checkout.sessions.create({
-      customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'MULTIPLE VIS REPORTS',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportmulti.jpg'],
-            },
-            unit_amount: 1445,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagemulti=1',
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/balance?dashboardbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  req.dom.page = "/dashboard/balance";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  if(!req.body.dashboardbalanceaddbasic && !req.body.dashboardbalanceaddfull && !req.body.dashboardbalanceaddmulti) next();
-});
-
-app.use("/dashboard/profile", (req, res, next) => {
-  if (!req.body.dashboardprofilesubmit) req.dom.dashboard.profile.message.text = null;//initialization
-
-  if (!req.dom.account.login.status) {
-    res.redirect("/account/login");
-    req.sent = 1;//end express session
-  }
-  
-  if (req.body.dashboardprofilesubmit && req.dom.dashboard.profile.password != encrypt(req.body.dashboardpasswordcurrent)) {
-    req.dom.dashboard.profile.message.text = "Your changes have not been saved. Please enter the correct current password.";
-    req.dom.dashboard.profile.message.color = "#CF6679";
-  }
-  
-  if (req.body.dashboardprofilesubmit && req.dom.dashboard.profile.password == encrypt(req.body.dashboardpasswordcurrent)) {
-    req.dom.dashboard.profile.contact = req.body.dashboardprofilecontactnew;
-    if(req.body.dashboardprofilepasswordnew) req.dom.dashboard.profile.password = encrypt(req.body.dashboardprofilepasswordnew);
-    req.dom.dashboard.profile.message.text = "Account details changed successfully.";
-    req.dom.dashboard.profile.message.color = "#BB86FC";
-    sendemail(req.cookies.user, "Your account details have been changed successfully at VISTEK. If it was not you, please contact us.");
-  }
-
-  req.dom.page = "/dashboard/profile";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/admin", (req, res, next) => {
-  // if (req.dom.account.login.role != "admin" || !req.dom.account.login.status) {
-  //   res.send(403);
-  //   req.sent = 1;//end express session
-  // }
-
-  req.dom.page = "/admin";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  req.dom.admin.root = req.body.root != null ? req.body.root : null;
-  req.dom.admin.id = req.body.id != null ? req.body.id : null;
-  req.dom.admin.json = null;
-  req.dom.admin.message = "";
-  if (req.body.json) gun.get(req.body.root).get(req.body.id).put(JSON.parse(req.body.json));
-  if (req.body.root && req.body.id) {
-    gun.get(req.body.root).get(req.body.id).once(res => {
-      if (res) {
-        gun.get(req.body.root).get(req.body.id).load(res => {
-          req.dom.admin.json = res;
-          req.dom.admin.message = "The record is successfully retrieved.";
-          if (req.body.json) req.dom.admin.message = "The record is successfully saved.";
-          next();
-        });
-      }
-      else next();
-    });
-  }
-  else {
-    next();
-  }
-});
-
-//report page rest endpoint
-app.use("/report", upload.array(), (req, res, next) => {
-  req.dom.report.regno = null;//initialization
-  req.dom.report.mode = null;//initialization
-  req.dom.report.dvla = null;//initialization
-  // req.dom.report.basic = null;//initialization
-  req.dom.report.basic.valuation = null;//initialization
-  req.dom.report.basic.vehicleandmothistory.MotHistory.RecordList = null;//initialization
-  req.dom.report.basic.vehicleandmothistory.VehicleRegistration = null;//initialization
-  req.dom.report.full = null;//initialization
-  req.dom.report.counter = 0;//initialization
-  req.dom.page = "/report";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it. Setting it before other code helps set it before next() statement.
-  req.email = 1;//email all reports
-
-  if (req.body.regno) {
-    let temp = req.body.regno.split("-");
-    req.dom.report.regno = temp[0].toUpperCase();
-    req.dom.report.mode = temp[1];
-  }
-  
-  if (req.query.regno) {
-    let temp = req.query.regno.split("-");
-    req.dom.report.regno = temp[0].toUpperCase();
-    req.dom.report.mode = temp[1];
-  }
-  
-  if (req.body.basicsectionunregisteredorder) {
-    stripe.checkout.sessions.create({
-      // customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'BASIC VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportbasic.jpg'],
-            },
-            unit_amount: 249,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.basicsectionunregisteredorder}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-  
-  if (req.body.fullsectionunregisteredorder) {
-    stripe.checkout.sessions.create({
-      // customer_email: req.cookies.user,
-      line_items: [
-        {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: 'FULL VIS REPORT',
-              images: ['http://vistek.eu-west-2.elasticbeanstalk.com/reportfull.jpg'],
-            },
-            unit_amount: 799,
-          },
-          quantity: 1,
-        }
-      ],
-      mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? "http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagebasic=1" : `http://vistek.eu-west-2.elasticbeanstalk.com/report?regno=${req.body.fullsectionunregisteredorder}`,
-      cancel_url: 'http://vistek.eu-west-2.elasticbeanstalk.com/dashboard/reports?dashboardreportsbalancemessagecancel=1'
-    })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  if (req.dom.report.regno) {
-    gun.get("vehicles").get(req.dom.report.regno).get("dvla").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res) {
-        gun.get("vehicles").get(req.dom.report.regno).get("dvla").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
-          req.dom.report.dvla = res;
-          req.dom.report.counter++;
-          if (req.dom.report.counter >= 4) next();
-        });
-      }
-      else {
-        superagent
-          .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
-          .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
-          .set('Content-Type', 'application/json')
-          .send({ registrationNumber: `${req.dom.report.regno}` })
-          .then(res => {
-            gun.get("vehicles").get(req.dom.report.regno).get("dvla").put(res.body);
-            req.dom.report.dvla = res.body;
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          })
-          .catch(err => {
-            console.log(err);
-            req.dom.report.dvla = "error";
-            req.dom.report.counter = req.dom.report.counter + 4;//dvla api fails with .catch, but vdicheck api's fails silently without .catch. So, when dvla api fails, it means that the registration number does not exist.
-            if (req.dom.report.counter >= 4) next();
-          });
-      }
-    });
-  }
-  else { 
-    req.dom.report.counter++;
-    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder && !req.body.fullsectionunregisteredorder) next();
-  }
-
-  if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
-    gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").once((res) => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata) {
-        gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
-          req.dom.report.basic.valuation = res;
-          if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
-            req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-
-            let time = Date.now();
-            req.dom.dashboard.balance.transactions[time] = {};
-            req.dom.dashboard.balance.transactions[time].time = time;
-            req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
-            req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-            req.dom.dashboard.balance.transactions[time].charges = null;
-            req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
-            req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
-          }
-          if (req.dom.report.regno != "AA19AAA") {
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//Place it after the basic balance minus if statement.
-          }
-          req.dom.report.counter++;
-          if (req.dom.report.counter >= 4) next();
-        });
-      }
-      else {
-        //valuationtestkey = "https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM="
-        superagent
-          .get("https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
-          .then(res => {
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").put(res.body.Response.DataItems);
-            req.dom.report.basic.valuation = res.body.Response.DataItems;
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-              let time = Date.now();
-              req.dom.dashboard.balance.transactions[time] = {};
-              req.dom.dashboard.balance.transactions[time].time = time;
-              req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
-              req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-              req.dom.dashboard.balance.transactions[time].charges = null;
-              req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
-              req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-              req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
-            }
-            if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
-              req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//place it after the basic balance minus if statement.
-            }
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          })
-          .catch(err => {
-            console.log(err);
-            req.dom.report.basic = "error";
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          });
-      }
-    });
-    
-    gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").once((res) => {
-      if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory) {
-        gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
-          req.dom.report.basic.vehicleandmothistory = res;
-          if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
-            req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-
-            let time = Date.now();
-            req.dom.dashboard.balance.transactions[time] = {};
-            req.dom.dashboard.balance.transactions[time].time = time;
-            req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
-            req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-            req.dom.dashboard.balance.transactions[time].charges = null;
-            req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
-            req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
-          }
-          if (req.dom.report.regno != "AA19AAA") {
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
-          }
-          req.dom.report.counter++;
-          if (req.dom.report.counter >= 4) next();
-        });
-      }
-      else {
-        //valuationtestkey = "https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM="
-        superagent
-          .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
-          .then(res => {
-            req.dom.report.basic.vehicleandmothistory = res.body.Response.DataItems;
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-              let time = Date.now();
-              req.dom.dashboard.balance.transactions[time] = {};
-              req.dom.dashboard.balance.transactions[time].time = time;
-              req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
-              req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-              req.dom.dashboard.balance.transactions[time].charges = null;
-              req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
-              req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-              req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
-            }
-            if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
-              req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
-            }
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          })
-          .catch(err => {
-            console.log(err);
-            req.dom.report.basic = "error";
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          });
-      }
-    });
-  } 
-  else {
-    req.dom.report.basic.valuation = null;//initialization
-    req.dom.report.basic.vehicleandmothistory.MotHistory.RecordList = null;//initialization
-    req.dom.report.basic.vehicleandmothistory.VehicleRegistration = null;//initialization
-    //two times increment because this section has two api calls.
-    req.dom.report.counter++;
-    req.dom.report.counter++;
-    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder && !req.body.fullsectionunregisteredorder) next();
-  }
-
-  if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full")))) {
-    gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res) {
-        gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").load((res) => {//sometimes gun.load hangs, so calling gun.once before it helps it not hang
-          req.dom.report.full = res;
-          req.dom.report.counter++;
-          if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
-            req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
-            req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
-           
-            let time = Date.now();
-            req.dom.dashboard.balance.transactions[time] = {};
-            req.dom.dashboard.balance.transactions[time].time = time;
-            req.dom.dashboard.balance.transactions[time].package = "Full Report Package";
-            req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-            req.dom.dashboard.balance.transactions[time].charges = null;
-            req.dom.dashboard.balance.transactions[time].credits = "-1 Full";
-            req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
-          }
-          if (req.dom.report.counter >= 4) next();
-        });
-      }
-      else {
-        //vdicheckfulltestkey = "https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=";
-        superagent
-          .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
-          .then(res => {
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
-            req.dom.report.full = res.body.Response.DataItems;
-            req.dom.report.counter++;
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
-              req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
-              let time = Date.now();
-              req.dom.dashboard.balance.transactions[time] = {};
-              req.dom.dashboard.balance.transactions[time].time = time;
-              req.dom.dashboard.balance.transactions[time].package = "Full Report Package";
-              req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-              req.dom.dashboard.balance.transactions[time].charges = null;
-              req.dom.dashboard.balance.transactions[time].credits = "-1 Full";
-              req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-              req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
-            }
-            if (req.dom.report.counter >= 4) next();
-          })
-          .catch(err => {
-            console.log(err);
-            req.dom.report.full = "error";
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          });
-      }
-    });
-  }
-  else {
-    req.dom.report.full = null;
-    req.dom.report.counter++;
-    if (req.dom.report.counter >= 4 && !req.body.basicsectionunregisteredorder && !req.body.fullsectionunregisteredorder) next();
-  }
-});
-
-app.use("/contact", (req, res, next) => {
-  if (req.body.email) {
-    req.dom.contact.message.text = "We have received your message and will contact back soon.";
-    req.dom.contact.message.color = "#6200EE";
-    sendemail("info@teknikality.com", `${req.body.email} has send you a message: ${req.body.message}`);
-  }
-  else { 
-    req.dom.contact.message.text = null;
-  }
-
-  req.dom.page = "/contact";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/about", (req, res, next) => {
-  req.dom.page  = "/about";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/privacy", (req, res, next) => {
-  req.dom.page = "/privacy";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/terms", (req, res, next) => {
-  req.dom.page = "/terms";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use("/webhook", (req, res, next) => {
-  if (Object.keys(req.dom.dashboard.balance.transactions).includes((req.body.created*1000).toString())) {
-    next();
-  }
-
-  if (req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email && req.body.data.object.amount == "249") {
-    req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic + 1;
-  }
-  if (req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email && req.body.data.object.amount == "799") {
-    req.dom.dashboard.balance.full = req.dom.dashboard.balance.full + 1;
-  }
-  if (req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email && req.body.data.object.amount == "1445") {
-    req.dom.dashboard.balance.full = req.dom.dashboard.balance.full + 3;
-  }
-
-  req.body.created = req.body.created * 1000;
-  req.dom.dashboard.balance.transactions[req.body.created] = {};
-  req.dom.dashboard.balance.transactions[req.body.created].stripeid = req.body.id;
-  req.dom.dashboard.balance.transactions[req.body.created].time = req.body.created;
-  if (req.body.data.object.amount == "249") req.dom.dashboard.balance.transactions[req.body.created].package = "Basic Report Package";
-  if (req.body.data.object.amount == "799") req.dom.dashboard.balance.transactions[req.body.created].package = "Full Report Package";
-  if (req.body.data.object.amount == "1445") req.dom.dashboard.balance.transactions[req.body.created].package = "Multiple Reports Package";
-  req.dom.dashboard.balance.transactions[req.body.created].vehicle = null;
-  req.dom.dashboard.balance.transactions[req.body.created].charges = req.body.data.object.amount/100;
-  if (req.body.data.object.amount == "249") req.dom.dashboard.balance.transactions[req.body.created].credits = "+1 Basic";
-  if (req.body.data.object.amount == "799") req.dom.dashboard.balance.transactions[req.body.created].credits = "+1 Full";
-  if (req.body.data.object.amount == "1445") req.dom.dashboard.balance.transactions[req.body.created].credits = "+3 Full";
-  req.dom.dashboard.balance.transactions[req.body.created].balancebasic = req.dom.dashboard.balance.basic;
-  req.dom.dashboard.balance.transactions[req.body.created].balancefull = req.dom.dashboard.balance.full;
-
-  if (req.body.type == 'charge.succeeded') {
-    console.log("webhook:", {
-      "time": Date.now(),
-      "email": req.body.data.object.billing_details.email,
-      "amount": req.body.data.object.amount,
-      "status": req.body.type
-    });
-    res.status(200).send('OK');//sending status of 200 is must otherwise, stripe will keep on resending and then ultimately fail.
-    req.sent = 1;//end express session
-    console.log("--------------------------------");
-  }
-
-  req.dom.page = "/webhook";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
-  next();
-});
-
-app.use((req, res, next) => {
-  if(req.cookies.user) console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
-  if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
-
-  let dom = `
     <!DOCTYPE html> 
     <html lang="en">
       <head>
@@ -1254,9 +64,6 @@ app.use((req, res, next) => {
               background-color: #3079be;
               background-position: 20% center;
               background-size:cover;
-            }
-            .homeservices1main2{
-              width:100%;
             }
             .dashboardmenu{
               justify-content:stretch;
@@ -1340,10 +147,6 @@ app.use((req, res, next) => {
               background-image:url("background.jpg");
               background-color: #3079be;
               background-position: center center;
-              background-repeat: no-repeat;
-            }
-           .homeservices1main2{
-              width:50%;
             }
             .dashboardmenu{
               justify-content:space-between;
@@ -1429,7 +232,7 @@ app.use((req, res, next) => {
               window.history.replaceState( null, null, window.location.href );
             }
 
-            dom = ${JSON.stringify(req.dom)};
+            dom = {"account":{"login":{"active":"ACTIVE","last":1649223990425,"message":{"color":"#6200EE","text":null},"role":null,"status":null},"register":{"message":{"color":"#6200EE","text":null}},"reset":{"message":{"color":null,"text":null}}},"admin":{"id":null,"json":{},"message":"","root":null},"contact":{"message":{"color":null,"text":null}},"dashboard":{"balance":{"basic":0,"full":0,"message":{"color":null,"text":null},"transactions":{}},"profile":{"contact":"","email":"KOGIP58542@VSOOC.COM","message":{"color":null,"text":null},"name":"KOGIP58542@VSOOC.COM","password":"4c6b82fbdfcc80be5c7537fb3cc1c889"},"reports":{"add":{"message":{"color":"","text":null}},"balance":{"message":{"color":"","text":""}},"cars":{"AA19AAA":{"basic":0,"full":0,"timestamp":1649153687463}},"page":1,"search":{"message":{"color":"","text":null},"regno":null}}},"home":{"banner":{"bg":{"message":{"color":null,"text":""}}}},"page":"/report","report":{"basic":{"valuation":null,"vehicleandmothistory":{"MotHistory":{"RecordList":null},"VehicleRegistration":null}},"counter":4,"dvla":null,"full":null,"mode":null,"regno":null}};
             console.log({"dom": dom});
 
             if(dom.page == "/"){
@@ -1756,15 +559,15 @@ app.use((req, res, next) => {
             if(dom.report.basic.valuation){
               window.document.querySelector(".basicsection").style.display = "grid";
               window.document.querySelector(".basicsectionunregistered").style.display = "none";
-              window.document.querySelector(".otr").innerHTML = dom.report.basic.valuation.ValuationList.OTR ? "£ " + dom.report.basic.valuation.ValuationList.OTR.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".dealerforecourt").innerHTML = dom.report.basic.valuation.ValuationList.DealerForecourt ? "£ " + dom.report.basic.valuation.ValuationList.DealerForecourt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".traderetail").innerHTML = dom.report.basic.valuation.ValuationList.TradeRetail ? "£ " + dom.report.basic.valuation.ValuationList.TradeRetail.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".privateclean").innerHTML = dom.report.basic.valuation.ValuationList.PrivateClean ? "£ " + dom.report.basic.valuation.ValuationList.PrivateClean.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".privateaverage").innerHTML = dom.report.basic.valuation.ValuationList.PrivateAverage ? "£ " + dom.report.basic.valuation.ValuationList.PrivateAverage.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".partexchange").innerHTML = dom.report.basic.valuation.ValuationList.PartExchange ? "£ " + dom.report.basic.valuation.ValuationList.PartExchange.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".auction").innerHTML = dom.report.basic.valuation.ValuationList.Auction ? "£ " + dom.report.basic.valuation.ValuationList.Auction.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".tradeaverage").innerHTML = dom.report.basic.valuation.ValuationList.TradeAverage ? "£ " + dom.report.basic.valuation.ValuationList.TradeAverage.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
-              window.document.querySelector(".tradepoor").innerHTML = dom.report.basic.valuation.ValuationList.TradePoor ? "£ " + dom.report.basic.valuation.ValuationList.TradePoor.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".otr").innerHTML = dom.report.basic.valuation.ValuationList.OTR ? "£ " + dom.report.basic.valuation.ValuationList.OTR.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".dealerforecourt").innerHTML = dom.report.basic.valuation.ValuationList.DealerForecourt ? "£ " + dom.report.basic.valuation.ValuationList.DealerForecourt.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".traderetail").innerHTML = dom.report.basic.valuation.ValuationList.TradeRetail ? "£ " + dom.report.basic.valuation.ValuationList.TradeRetail.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".privateclean").innerHTML = dom.report.basic.valuation.ValuationList.PrivateClean ? "£ " + dom.report.basic.valuation.ValuationList.PrivateClean.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".privateaverage").innerHTML = dom.report.basic.valuation.ValuationList.PrivateAverage ? "£ " + dom.report.basic.valuation.ValuationList.PrivateAverage.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".partexchange").innerHTML = dom.report.basic.valuation.ValuationList.PartExchange ? "£ " + dom.report.basic.valuation.ValuationList.PartExchange.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".auction").innerHTML = dom.report.basic.valuation.ValuationList.Auction ? "£ " + dom.report.basic.valuation.ValuationList.Auction.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".tradeaverage").innerHTML = dom.report.basic.valuation.ValuationList.TradeAverage ? "£ " + dom.report.basic.valuation.ValuationList.TradeAverage.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
+              window.document.querySelector(".tradepoor").innerHTML = dom.report.basic.valuation.ValuationList.TradePoor ? "£ " + dom.report.basic.valuation.ValuationList.TradePoor.toString().replace(/B(?=(d{3})+(?!d))/g, ",") : "NOT AVAILABLE";
               window.document.querySelector(".vrm").innerHTML = dom.report.basic.valuation.Vrm ? dom.report.basic.valuation.Vrm : "NOT AVAILABLE";
               window.document.querySelector(".mileage").innerHTML = dom.report.basic.valuation.Mileage ? dom.report.basic.valuation.Mileage : "NOT AVAILABLE";
               window.document.querySelector(".plateyear").innerHTML = dom.report.basic.valuation.PlateYear ? dom.report.basic.valuation.PlateYear : "NOT AVAILABLE";
@@ -1911,7 +714,7 @@ app.use((req, res, next) => {
                   <img class="logo" src="/logo.jpg" style="width:4rem;background-color:grey;background-image:url('/logo.jpg');background-size:cover;" alt="vistek logo" loading="lazy">
                 </a>
               </div>
-              <div class="navmenu" style="display:grid;grid-template-columns:auto auto auto auto auto auto auto auto; align-self:center;margin-right:0.5rem;">
+              <div class="navmenu" style="display:grid;grid-template-columns:auto auto auto auto auto auto auto auto; align-self:center;">
                 <div class="navregno" style="display:none;grid-auto-flow:column;grid-gap:0.25rem;align-items:center;align-self:center;justify-content:center;height:51px;margin:0 0.5rem 0;">
                   <form id="navvehiclereg" action="/report" method="post">
                   </form>
@@ -2075,10 +878,10 @@ app.use((req, res, next) => {
               </div>
             </div>
             <div class="services1" id="services" style="display:grid;justify-items:center;">
-              <div class="homeservices1main1" style="display:grid;justify-items:center;width:96vw;margin:0.5em;margin:1rem 0;">
-                <div class="homeservices1main2" style="display:grid;grid-template-rows: auto auto; justify-items:center;grid-gap:0.5rem;">
+              <div style="display:grid;justify-items:center;width:96vw;margin:0.5em;margin:1rem 0;">
+                <div style="display:grid;grid-template-rows: auto auto; justify-items:center;grid-gap:0.5rem;width:100%;">
                   <div style="display:grid;justify-items:center;width:100%;">
-                    <div style="display:grid;justify-items:center;grid-gap:0.5rem;background:#f9d441;font-size:2rem;font-weight:bold;padding:0.5rem;width:100%;">
+                    <div style="display:grid;justify-items:center;grid-gap:0.5rem;background:#f9d441;font-size:2rem;font-weight:bold;padding:0.5rem;">
                       Services
                     </div>
                   </div>
@@ -2154,7 +957,7 @@ app.use((req, res, next) => {
                   Outstanding Car Finance & Logbook Loan Check
                 </div>
                 <div>
-                  If you buy a car that has an outstanding loan or finance agreement against it, then you are in danger of losing the vehicle, and the money you paid for it. This is a real risk when purchasing a second-hand vehicle, so using a car finance checker to look into its history is an important action to take.<br/><br/>
+                  If you buy a car that has an outstanding loan or finance agreement against it, then you are in danger of losing the vehicle, and money you paid for it. This is a real risk when purchasing a second-hand vehicle, so using a car finance checker to look into its history is an important action to take.<br/><br/>
                   Our full VIS Report includes a car finance check, which will flag up any outstanding finance agreements that remain on the vehicle. This vehicle finance check will quickly let you know if the car, van or motorbike you are after is safe to buy.
                 </div>
                 <div style="font-size:2rem;font-weight:bold;justify-self:center;text-align:center;">
@@ -2162,14 +965,14 @@ app.use((req, res, next) => {
                 </div>
                 <div>
                   When finance is taken out on a car, it means that the lender maintains ownership of the vehicle until the complete debt has been paid off. Only then does it become the property of the borrower. An outstanding finance check will inform you of whether there is any debt owed on the vehicle.<br/><br/>
-                  Otherwise, even if you buy a car with the best intentions, without undertaking any VIS Finance Check on the car, you could end up buying a vehicle that is not legally yours. Where the finance has not been settled, the lender is within their rights to repossess the vehicle, meaning you could lose the car and money you paid.
+                  Otherwise, even if you buy a car with the best intentions, without undertaking any HPI Finance Check on the car, you could endup buying a vehicle that is not legally yours. Where the finance has not been settled, the lender is within their rights to repossess the vehicle, meaning you could lose the car and money you paid.
                 </div>
                 <div style="font-size:2rem;font-weight:bold;justify-self:center;text-align:center;">
                   Check the Vehicle's Finance History
                 </div>
                 <div>
                   Our Vehicle Checker's services include many essential inspections to ensure the car you are buying is safe and legal to purchase, including a logbook loan check. The debt stays with the vehicle and not the borrower, so unless you use a Car Finance Checker beforehand, you can be taking on an extra financial burden or putting yourself at risk of losing the car.<br/><br/>
-                  Be wary of any place offering a free Car Check though, as anywhere that claims to provide such a service will not be delivering the genuine article. Instead, use the reliable VIS Reports to be safe in the knowledge of your new vehicle's financial history.
+                  Bewary of any place offering a free Car Check though, as anywhere that claims to provide such a service will not be delivering the genuine article. Instead, use the reliable VIS Reports to be safe in the knowledge of your new vehicle's financial history.
                 </div>
               </div>
             </div>
@@ -2180,7 +983,7 @@ app.use((req, res, next) => {
                 </div>
               </div>
               <div class="homepackagesdetails" style="display:grid;grid-template-columns:repeat(4,minmax(0,auto));justify-items:stretch;align-items:stretch;grid-gap:0.1rem;color:white;">
-                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;">
+                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;border-top-left-radius:1rem;">
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     PRODUCTS
                   </div>
@@ -2204,7 +1007,7 @@ app.use((req, res, next) => {
                     £7.99
                   </div>
                 </div>
-                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;">
+                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;border-top-right-radius:1rem;">
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     MULTIPLE FULL REPORTS
                   </div>
@@ -2380,13 +1183,13 @@ app.use((req, res, next) => {
                 <div style="display:grid;background:#2f2e2a;padding:0.5rem;font-weight:bold;justify-items:center;align-items:center;text-align:center;">
                   Three(3)
                 </div>
-                <div style="background:#2f2e2a;">
+                <div style="background:#2f2e2a;border-bottom-left-radius:1rem;">
                   <div style="display:grid;justify-items:center;">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number above to get its Report.'; 
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
@@ -2398,7 +1201,7 @@ app.use((req, res, next) => {
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number above to get its Report.'; 
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
@@ -2408,9 +1211,9 @@ app.use((req, res, next) => {
                     ">
                   </div>
                 </div>
-                <div style="background:#2f2e2a;">
+                <div style="background:#2f2e2a;border-bottom-right-radius:1rem;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number above to get its Report.'; 
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
@@ -2528,16 +1331,10 @@ app.use((req, res, next) => {
                   <input form="accountreset" type="email" name="accountresetemail" placeholder="Email Address" required style="background-color:#c4c4c4;padding:1rem;border:0;outline:none;text-align:center;font-size:1rem;box-sizing:border-box;border-radius:2rem;">
                 </div>
                 <div class="accountresetpassword" style="display:grid;justify-items:stretch;">
-                  <input class="accountresetpasswordinput" form="accountreset" type="password" name="accountresetpassword" placeholder="New Password" pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$" title="Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character #, ?, !, @, $, %, ^, &, *, -." required style="background-color:#c4c4c4;padding:1rem;border:0;outline:none;text-align: center;font-size:1rem;box-sizing:border-box;border-radius:2rem;">
+                  <input form="accountreset" type="password" name="accountresetpassword" placeholder="New Password" pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$" title="Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character #, ?, !, @, $, %, ^, &, *, -." required style="background-color:#c4c4c4;padding:1rem;border:0;outline:none;text-align: center;font-size:1rem;box-sizing:border-box;border-radius:2rem;">
                 </div>
                 <div class="accountresetsubmit" style="display:grid;justify-items:stretch;width:227px;">
-                  <input form="accountreset" type="submit" value="Reset Password" style="background-color:#f9d441;padding:1rem;border:0;outline:none;text-align:center;font-size:1rem;width:100%;box-sizing:border-box;cursor:pointer;border-radius:2rem;font-weight:bold;" onclick="let pattern = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/; if(!pattern.test(document.querySelector('.accountresetpasswordinput').value)) {
-                      window.document.querySelector('.accountresetmessage').style.display = 'grid';
-                      window.document.querySelector('.accountresetmessage').innerHTML = 'Please re-enter password meeting the criteria: minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character #, ?, !, @, $, %, ^, &, *, -.';
-                      window.document.querySelector('.accountresetmessage').style.color = '#B00020';
-                      window.document.querySelector('.accountresetmessage').style.fontSize = '1rem'; 
-                      return false;
-                    }">
+                  <input form="accountreset" type="submit" value="Reset Password" style="background-color:#f9d441;padding:1rem;border:0;outline:none;text-align:center;font-size:1rem;width:100%;box-sizing:border-box;cursor:pointer;border-radius:2rem;font-weight:bold;">
                 </div>
               </div>
               <div class="accountresetmessage" style="display:none;grid-template-rows:repeat(auto-fit,minmax(0,auto));background:#d6d6d6;justify-self:center;margin:0.5rem;padding:0.5rem;font-size:0.9rem;color:#6200EE;font-weight:bold;text-align:justify;">
@@ -4565,12 +3362,12 @@ app.use((req, res, next) => {
             </div>
           </div>
           <div class="contact" style="display:none;justify-items:center;grid-gap:0.5rem;">
-            <div class="contactbackground" style="display:grid;justify-items:center;background-image:url('contactbackground.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;font-weight:bold;font-size:4rem;text-align:center;width:100%;">
-              <div class="contactbackgroundtitle">
-                Contact Us
+            <div class="contactbackground" style="background-image:url('contactbackground.jpg');background-size:cover;font-weight:bold;font-size:4rem;text-align:center;width:100%;">
+              <div style="margin-left:4rem;">
+                Contact a Member
               </div>
-              <div class="contactbackgroundtext" style="font-size:1rem;font-weight:normal;">
-                If you have any question or would like to comment on our service or an industry issue, please contact us. We would like to hear from you.
+              <div style="margin-left:4rem;font-size:2rem;font-weight:normal;">
+                of the Team
               </div>
             </div>
             <style>
@@ -4578,28 +3375,11 @@ app.use((req, res, next) => {
                 .contactbackground{
                   padding:20rem 0;
                 }
-               .contactbackgroundtitle{
-                  margin-left: 10rem;
-                  width: 50%;
-                }
-               .contactbackgroundtext{
-                  margin-left: 10rem;
-                  width:40%;
-                }
               }
               @media all and (max-width: 551px){
                 .contactbackground{
                   background-position:center;
-                }
-                .contactbackgroundtitle{
-                  margin-left: 6rem;
-                  font-size: 3rem;
-                  margin-top: 4rem;
-                }
-               .contactbackgroundtext{
-                  margin-left: 6rem;
-                  width: 50%;
-                  margin-bottom: 4rem;
+                  padding:3rem 0;
                 }
               }
             </style>
@@ -4668,15 +3448,9 @@ app.use((req, res, next) => {
             </div>
           </div>
           <div class="about" style="display:none;">
-            <div class="abouttitle" style="background-image:url('aboutbackground.jpg');background-size:cover;background-position:center center;background-size:cover;background-repeat:no-repeat;">
-              <div class="abouttitletext" style="text-align:center;font-weight:bold;font-size:4rem;width:100%;margin-bottom:1rem;">
+            <div class="abouttitle" style="background-image:url('aboutbackground.jpg');background-size:cover;text-align:center;font-weight:bold;font-size:4rem;width:100%;">
+              <div class="abouttitletext">
                 About Us
-              </div>
-              <div style="text-align:center;width:100%;margin-bottom:1rem;">
-                VIS introduced vehicle history checks. Over time, we have built a strong reputation for credibility and trust.
-              </div>
-              <div style="text-align:center;width:100%;">
-                VIS Check is the largest provider of technology driven data solutions in the automotive market, combining industry and unique data sets to create innovative and powerful solutions through excellent customer service.
               </div>
             </div>
             <style>
@@ -5210,55 +3984,4 @@ app.use((req, res, next) => {
         </div>
       </body>
     </html>
-    `;
-
-  //"return" only returns from the immediate function, not outer function. Thus, express never ends its session in nested function when return is called. Only solution is to use local variable to store that information. 
-  if (!req.sent) {
-    req.sent = 1;
-    res.send(dom);
-  }
-  
-  if (req.email) {
-    (async () => {
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: path.join(path.resolve(), "/node_modules/puppeteer/.local-chromium/linux-970485/chrome-linux/chrome"),
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      const page = await browser.newPage();
-      fs.writeFileSync("./assets/Report.html", dom);
-      let pathToHtml = path.join(path.resolve(), "/assets/Report.html");
-      await page.goto(`file:${pathToHtml}`, { waitUntil: ["load", "networkidle0"] });
-      await page.pdf({ path: './assets/Report.pdf'});
-      pathToHtml = path.join(path.resolve(), "/assets/Report.pdf");
-      if (req.cookies.user) sendemail(req.cookies.user, "Attached is your VISTEK Report.", [{filename: "Report.pdf", path: pathToHtml}]);
-      await browser.close();
-    })();
     
-    
-
-    // (async function() {
-    //     const instance = await phantom.create();
-    //     const page = await instance.createPage();
-    //     fs.writeFileSync("./assets/Report.html", dom);
-    //     let pathToHtml = path.join(path.resolve(), "/assets/Report.html");
-    
-    //     // await page.property('viewportSize', {width: 1024, height: 600});
-    //     const status = await page.open(`file:${pathToHtml}`, { waitUntil: ["load", "networkidle0"] });
-    //     console.log(`Page opened with status [${status}].`);
-    
-    //     await page.render('./assets/Report.pdf');
-    //     console.log(`File created at [./stackoverflow.pdf]`);
-    
-    //     await instance.exit();
-    // }());
-  }
-  
-  if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
-});
-
-//last rest point and catch all.
-app.use(/.*/, function (req, res, next) {
-  if (!req.sent) res.redirect("/");
-});
-
