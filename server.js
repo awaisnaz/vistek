@@ -153,7 +153,7 @@ gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not eve
 
 ////////////////////////////////////// APP ENDPOINTS //////////////////////////////////////////////////
 app.use((req, res, next) => {
-  req.appdomain = `https://${req.hostname}:${req.socket.localPort}`;//${req.protocol} for http/https
+  req.appdomain = `${req.protocol}://${req.hostname}:${req.socket.localPort}`;
   // req.appdomain = "blah";
   req.timestamp = Date.now();
   req.dom = {//req stores values from previous request sessions, so need to initialize it on every request. Initializing the dom variable to null otherwise, error occurs of reading/writing attirbute of undefined nested object in if statements and crud code.
