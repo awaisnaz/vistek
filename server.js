@@ -101,7 +101,7 @@ function decrypt(data){
 
 //email
 import nodemailer from "nodemailer";
-function sendemail(receiver, message, attachments){
+function email(receiver, message, attachments){
   nodemailer
     .createTransport({
       "host": process.env.APPEMAILHOST,
@@ -412,7 +412,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
-    sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
@@ -438,13 +438,13 @@ app.use("/account/reset", (req, res, next) => {
   if (req.body.accountresetemail) {
     req.dom.account.reset.message.text = "Please check your email, and click on the email verification link, to change your password. The password will remain unchanged without email verification.";
     req.dom.account.reset.message.color = process.env.APPMESSAGEINFOCOLOR;
-  if (req.hostname == "localhost") sendemail(req.cookies.user,`click <a href="http://${req.headers.host}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
-    if (req.hostname != "localhost") sendemail(req.cookies.user,`click <a href="https://${req.hostname}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
+  if (req.hostname == "localhost") email(req.cookies.user,`click <a href="http://${req.headers.host}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
+    if (req.hostname != "localhost") email(req.cookies.user,`click <a href="https://${req.hostname}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
   }
 
   if (req.query.accountresetconfirm && req.query.accountresetconfirm  == decrypt(req.query.token)) {
     req.dom.dashboard.profile.password = req.query.accountresetpassword;
-    sendemail(req.cookies.user, `Your password has been reset. If this was you, you can safely ignore this email.`);
+    email(req.cookies.user, `Your password has been reset. If this was you, you can safely ignore this email.`);
     res.redirect("/account/login?accountresetconfirm=1");
     req.sent = 1;//end express session
   }
@@ -774,7 +774,7 @@ app.use("/dashboard/profile", (req, res, next) => {
     if(req.body.dashboardprofilepasswordnew) req.dom.dashboard.profile.password = encrypt(req.body.dashboardprofilepasswordnew);
     req.dom.dashboard.profile.message.text = "Account details changed successfully.";
     req.dom.dashboard.profile.message.color = "#BB86FC";
-    sendemail(req.cookies.user, "Your account details have been changed successfully at VISTEK. If it was not you, please contact us.");
+    email(req.cookies.user, "Your account details have been changed successfully at VISTEK. If it was not you, please contact us.");
   }
 
   req.dom.page = "/dashboard/profile";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
@@ -1129,7 +1129,7 @@ app.use("/contact", (req, res, next) => {
   if (req.body.email) {
     req.dom.contact.message.text = "We have received your message and will contact back soon.";
     req.dom.contact.message.color = process.env.APPMESSAGEINFOCOLOR;
-    sendemail("info@teknikality.com", `${req.body.email} has send you a message: ${req.body.message}`);
+    email("info@teknikality.com", `${req.body.email} has send you a message: ${req.body.message}`);
   }
   else { 
     req.dom.contact.message.text = null;
@@ -5247,7 +5247,7 @@ app.use((req, res, next) => {
       await page.goto(`file:${pathToHtml}`, { waitUntil: ["load", "networkidle0"] });
       await page.pdf({ path: './assets/Report.pdf'});
       pathToHtml = path.join(path.resolve(), "/assets/Report.pdf");
-      if (req.cookies.user) sendemail(req.cookies.user, "Attached is your VISTEK Report.", [{filename: "Report.pdf", path: pathToHtml}]);
+      if (req.cookies.user) email(req.cookies.user, "Attached is your VISTEK Report.", [{filename: "Report.pdf", path: pathToHtml}]);
       await browser.close();
     })();
     
