@@ -17479,6 +17479,9 @@
                         "ComputeResources": {
                             "$ref": "#/definitions/AWS::Batch::ComputeEnvironment.ComputeResources"
                         },
+                        "ReplaceComputeEnvironment": {
+                            "type": "boolean"
+                        },
                         "ServiceRole": {
                             "type": "string"
                         },
@@ -17499,6 +17502,9 @@
                         },
                         "UnmanagedvCpus": {
                             "type": "number"
+                        },
+                        "UpdatePolicy": {
+                            "$ref": "#/definitions/AWS::Batch::ComputeEnvironment.UpdatePolicy"
                         }
                     },
                     "required": [
@@ -17598,6 +17604,9 @@
                 },
                 "Type": {
                     "type": "string"
+                },
+                "UpdateToLatestImageVersion": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -17633,6 +17642,18 @@
                 },
                 "Version": {
                     "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::Batch::ComputeEnvironment.UpdatePolicy": {
+            "additionalProperties": false,
+            "properties": {
+                "JobExecutionTimeoutMinutes": {
+                    "type": "number"
+                },
+                "TerminateJobsOnUpdate": {
+                    "type": "boolean"
                 }
             },
             "type": "object"
@@ -32166,6 +32187,15 @@
         "AWS::DMS::Endpoint.DocDbSettings": {
             "additionalProperties": false,
             "properties": {
+                "DocsToInvestigate": {
+                    "type": "number"
+                },
+                "ExtractDocId": {
+                    "type": "boolean"
+                },
+                "NestingLevel": {
+                    "type": "string"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
@@ -32250,11 +32280,20 @@
         "AWS::DMS::Endpoint.IbmDb2Settings": {
             "additionalProperties": false,
             "properties": {
+                "CurrentLsn": {
+                    "type": "string"
+                },
+                "MaxKBytesPerRead": {
+                    "type": "number"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
                 "SecretsManagerSecretId": {
                     "type": "string"
+                },
+                "SetDataCaptureChanges": {
+                    "type": "boolean"
                 }
             },
             "type": "object"
@@ -32358,11 +32397,32 @@
         "AWS::DMS::Endpoint.MicrosoftSqlServerSettings": {
             "additionalProperties": false,
             "properties": {
+                "BcpPacketSize": {
+                    "type": "number"
+                },
+                "ControlTablesFileGroup": {
+                    "type": "string"
+                },
+                "QuerySingleAlwaysOnNode": {
+                    "type": "boolean"
+                },
+                "ReadBackupOnly": {
+                    "type": "boolean"
+                },
+                "SafeguardPolicy": {
+                    "type": "string"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
                 "SecretsManagerSecretId": {
                     "type": "string"
+                },
+                "UseBcpFullLoad": {
+                    "type": "boolean"
+                },
+                "UseThirdPartyBackupDevice": {
+                    "type": "boolean"
                 }
             },
             "type": "object"
@@ -32661,11 +32721,80 @@
         "AWS::DMS::Endpoint.RedshiftSettings": {
             "additionalProperties": false,
             "properties": {
+                "AcceptAnyDate": {
+                    "type": "boolean"
+                },
+                "AfterConnectScript": {
+                    "type": "string"
+                },
+                "BucketFolder": {
+                    "type": "string"
+                },
+                "BucketName": {
+                    "type": "string"
+                },
+                "CaseSensitiveNames": {
+                    "type": "boolean"
+                },
+                "CompUpdate": {
+                    "type": "boolean"
+                },
+                "ConnectionTimeout": {
+                    "type": "number"
+                },
+                "DateFormat": {
+                    "type": "string"
+                },
+                "EmptyAsNull": {
+                    "type": "boolean"
+                },
+                "EncryptionMode": {
+                    "type": "string"
+                },
+                "ExplicitIds": {
+                    "type": "boolean"
+                },
+                "FileTransferUploadStreams": {
+                    "type": "number"
+                },
+                "LoadTimeout": {
+                    "type": "number"
+                },
+                "MaxFileSize": {
+                    "type": "number"
+                },
+                "RemoveQuotes": {
+                    "type": "boolean"
+                },
+                "ReplaceChars": {
+                    "type": "string"
+                },
+                "ReplaceInvalidChars": {
+                    "type": "string"
+                },
                 "SecretsManagerAccessRoleArn": {
                     "type": "string"
                 },
                 "SecretsManagerSecretId": {
                     "type": "string"
+                },
+                "ServerSideEncryptionKmsKeyId": {
+                    "type": "string"
+                },
+                "ServiceAccessRoleArn": {
+                    "type": "string"
+                },
+                "TimeFormat": {
+                    "type": "string"
+                },
+                "TrimBlanks": {
+                    "type": "boolean"
+                },
+                "TruncateColumns": {
+                    "type": "boolean"
+                },
+                "WriteBufferSize": {
+                    "type": "number"
                 }
             },
             "type": "object"
@@ -35291,6 +35420,118 @@
                 "Type",
                 "Properties"
             ],
+            "type": "object"
+        },
+        "AWS::DataSync::LocationFSxOpenZFS": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "FsxFilesystemArn": {
+                            "type": "string"
+                        },
+                        "Protocol": {
+                            "$ref": "#/definitions/AWS::DataSync::LocationFSxOpenZFS.Protocol"
+                        },
+                        "SecurityGroupArns": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "Subdirectory": {
+                            "type": "string"
+                        },
+                        "Tags": {
+                            "items": {
+                                "$ref": "#/definitions/Tag"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "FsxFilesystemArn",
+                        "Protocol",
+                        "SecurityGroupArns"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::DataSync::LocationFSxOpenZFS"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::DataSync::LocationFSxOpenZFS.MountOptions": {
+            "additionalProperties": false,
+            "properties": {
+                "Version": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::DataSync::LocationFSxOpenZFS.NFS": {
+            "additionalProperties": false,
+            "properties": {
+                "MountOptions": {
+                    "$ref": "#/definitions/AWS::DataSync::LocationFSxOpenZFS.MountOptions"
+                }
+            },
+            "required": [
+                "MountOptions"
+            ],
+            "type": "object"
+        },
+        "AWS::DataSync::LocationFSxOpenZFS.Protocol": {
+            "additionalProperties": false,
+            "properties": {
+                "NFS": {
+                    "$ref": "#/definitions/AWS::DataSync::LocationFSxOpenZFS.NFS"
+                }
+            },
             "type": "object"
         },
         "AWS::DataSync::LocationFSxWindows": {
@@ -40982,6 +41223,9 @@
                     },
                     "type": "array"
                 },
+                "MaintenanceOptions": {
+                    "$ref": "#/definitions/AWS::EC2::LaunchTemplate.MaintenanceOptions"
+                },
                 "MetadataOptions": {
                     "$ref": "#/definitions/AWS::EC2::LaunchTemplate.MetadataOptions"
                 },
@@ -41058,6 +41302,15 @@
             "additionalProperties": false,
             "properties": {
                 "LicenseConfigurationArn": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::EC2::LaunchTemplate.MaintenanceOptions": {
+            "additionalProperties": false,
+            "properties": {
+                "AutoRecovery": {
                     "type": "string"
                 }
             },
@@ -44776,6 +45029,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "Description": {
+                            "type": "string"
+                        },
+                        "GatewayLoadBalancerEndpointId": {
                             "type": "string"
                         },
                         "NetworkInterfaceId": {
@@ -55926,6 +56182,164 @@
             "required": [
                 "Key",
                 "Value"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "Description": {
+                            "type": "string"
+                        },
+                        "EventBuses": {
+                            "items": {
+                                "$ref": "#/definitions/AWS::Events::Endpoint.EndpointEventBus"
+                            },
+                            "type": "array"
+                        },
+                        "Name": {
+                            "type": "string"
+                        },
+                        "ReplicationConfig": {
+                            "$ref": "#/definitions/AWS::Events::Endpoint.ReplicationConfig"
+                        },
+                        "RoleArn": {
+                            "type": "string"
+                        },
+                        "RoutingConfig": {
+                            "$ref": "#/definitions/AWS::Events::Endpoint.RoutingConfig"
+                        }
+                    },
+                    "required": [
+                        "EventBuses",
+                        "Name",
+                        "RoutingConfig"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::Events::Endpoint"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.EndpointEventBus": {
+            "additionalProperties": false,
+            "properties": {
+                "EventBusArn": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "EventBusArn"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.FailoverConfig": {
+            "additionalProperties": false,
+            "properties": {
+                "Primary": {
+                    "$ref": "#/definitions/AWS::Events::Endpoint.Primary"
+                },
+                "Secondary": {
+                    "$ref": "#/definitions/AWS::Events::Endpoint.Secondary"
+                }
+            },
+            "required": [
+                "Primary",
+                "Secondary"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.Primary": {
+            "additionalProperties": false,
+            "properties": {
+                "HealthCheck": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "HealthCheck"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.ReplicationConfig": {
+            "additionalProperties": false,
+            "properties": {
+                "State": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "State"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.RoutingConfig": {
+            "additionalProperties": false,
+            "properties": {
+                "FailoverConfig": {
+                    "$ref": "#/definitions/AWS::Events::Endpoint.FailoverConfig"
+                }
+            },
+            "required": [
+                "FailoverConfig"
+            ],
+            "type": "object"
+        },
+        "AWS::Events::Endpoint.Secondary": {
+            "additionalProperties": false,
+            "properties": {
+                "Route": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Route"
             ],
             "type": "object"
         },
@@ -83639,6 +84053,9 @@
                         "FunctionName": {
                             "type": "string"
                         },
+                        "FunctionUrlAuthType": {
+                            "type": "string"
+                        },
                         "Principal": {
                             "type": "string"
                         },
@@ -83678,6 +84095,114 @@
                 "Type",
                 "Properties"
             ],
+            "type": "object"
+        },
+        "AWS::Lambda::Url": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "AuthType": {
+                            "type": "string"
+                        },
+                        "Cors": {
+                            "$ref": "#/definitions/AWS::Lambda::Url.Cors"
+                        },
+                        "Qualifier": {
+                            "type": "string"
+                        },
+                        "TargetFunctionArn": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "AuthType",
+                        "TargetFunctionArn"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::Lambda::Url"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::Lambda::Url.Cors": {
+            "additionalProperties": false,
+            "properties": {
+                "AllowCredentials": {
+                    "type": "boolean"
+                },
+                "AllowHeaders": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "AllowMethods": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "AllowOrigins": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "ExposeHeaders": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "MaxAge": {
+                    "type": "number"
+                }
+            },
             "type": "object"
         },
         "AWS::Lambda::Version": {
@@ -95338,6 +95863,199 @@
                 "ObjectGroup",
                 "ObjectGroupName"
             ],
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "DeletionPolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                },
+                "DependsOn": {
+                    "anyOf": [
+                        {
+                            "pattern": "^[a-zA-Z0-9]+$",
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "pattern": "^[a-zA-Z0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "Metadata": {
+                    "type": "object"
+                },
+                "Properties": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "AdDecisionServerUrl": {
+                            "type": "string"
+                        },
+                        "AvailSuppression": {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.AvailSuppression"
+                        },
+                        "Bumper": {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.Bumper"
+                        },
+                        "CdnConfiguration": {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.CdnConfiguration"
+                        },
+                        "ConfigurationAliases": {
+                            "additionalProperties": true,
+                            "patternProperties": {
+                                "^[a-zA-Z0-9]+$": {
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "DashConfiguration": {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.DashConfigurationForPut"
+                        },
+                        "LivePreRollConfiguration": {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.LivePreRollConfiguration"
+                        },
+                        "ManifestProcessingRules": {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.ManifestProcessingRules"
+                        },
+                        "Name": {
+                            "type": "string"
+                        },
+                        "PersonalizationThresholdSeconds": {
+                            "type": "number"
+                        },
+                        "SessionInitializationEndpointPrefix": {
+                            "type": "string"
+                        },
+                        "SlateAdUrl": {
+                            "type": "string"
+                        },
+                        "Tags": {
+                            "items": {
+                                "$ref": "#/definitions/Tag"
+                            },
+                            "type": "array"
+                        },
+                        "TranscodeProfileName": {
+                            "type": "string"
+                        },
+                        "VideoContentSourceUrl": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "AdDecisionServerUrl",
+                        "Name",
+                        "VideoContentSourceUrl"
+                    ],
+                    "type": "object"
+                },
+                "Type": {
+                    "enum": [
+                        "AWS::MediaTailor::PlaybackConfiguration"
+                    ],
+                    "type": "string"
+                },
+                "UpdateReplacePolicy": {
+                    "enum": [
+                        "Delete",
+                        "Retain",
+                        "Snapshot"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Type",
+                "Properties"
+            ],
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.AdMarkerPassthrough": {
+            "additionalProperties": false,
+            "properties": {
+                "Enabled": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.AvailSuppression": {
+            "additionalProperties": false,
+            "properties": {
+                "Mode": {
+                    "type": "string"
+                },
+                "Value": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.Bumper": {
+            "additionalProperties": false,
+            "properties": {
+                "EndUrl": {
+                    "type": "string"
+                },
+                "StartUrl": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.CdnConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "AdSegmentUrlPrefix": {
+                    "type": "string"
+                },
+                "ContentSegmentUrlPrefix": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.DashConfigurationForPut": {
+            "additionalProperties": false,
+            "properties": {
+                "MpdLocation": {
+                    "type": "string"
+                },
+                "OriginManifestType": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.LivePreRollConfiguration": {
+            "additionalProperties": false,
+            "properties": {
+                "AdDecisionServerUrl": {
+                    "type": "string"
+                },
+                "MaxDurationSeconds": {
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "AWS::MediaTailor::PlaybackConfiguration.ManifestProcessingRules": {
+            "additionalProperties": false,
+            "properties": {
+                "AdMarkerPassthrough": {
+                    "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration.AdMarkerPassthrough"
+                }
+            },
             "type": "object"
         },
         "AWS::MemoryDB::ACL": {
@@ -131097,6 +131815,9 @@
                             "$ref": "#/definitions/AWS::DataSync::LocationFSxLustre"
                         },
                         {
+                            "$ref": "#/definitions/AWS::DataSync::LocationFSxOpenZFS"
+                        },
+                        {
                             "$ref": "#/definitions/AWS::DataSync::LocationFSxWindows"
                         },
                         {
@@ -131557,6 +132278,9 @@
                         },
                         {
                             "$ref": "#/definitions/AWS::Events::Connection"
+                        },
+                        {
+                            "$ref": "#/definitions/AWS::Events::Endpoint"
                         },
                         {
                             "$ref": "#/definitions/AWS::Events::EventBus"
@@ -132114,6 +132838,9 @@
                             "$ref": "#/definitions/AWS::Lambda::Permission"
                         },
                         {
+                            "$ref": "#/definitions/AWS::Lambda::Url"
+                        },
+                        {
                             "$ref": "#/definitions/AWS::Lambda::Version"
                         },
                         {
@@ -132295,6 +133022,9 @@
                         },
                         {
                             "$ref": "#/definitions/AWS::MediaStore::Container"
+                        },
+                        {
+                            "$ref": "#/definitions/AWS::MediaTailor::PlaybackConfiguration"
                         },
                         {
                             "$ref": "#/definitions/AWS::MemoryDB::ACL"

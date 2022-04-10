@@ -5,16 +5,16 @@ process.env.APPDOMAIN = "http://18.134.73.1:8080/";
 process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
 process.env.APPS3SECRET = "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";
 process.env.APPS3BUCKET = "vistek";
-process.env.CRYPTOVERIFICATIONENCRYPTIONKEY = "nVRQO_K1GVt}yH1Plkl9?V~EWu-/1y67";
-process.env.CRYPTOVERIFICATIONENCRYPTIONVECTOR = "MIGeMA0GCSqGSIb3";
-process.env.EMAILUSER = "support@vehicleinformationsystem.com";
-process.env.EMAILPASS = "Spring@202!";
-process.env.EMAILHOST = "smtpout.secureserver.net";
-process.env.EMAILPORT = 465; //465 for ssl, 587 for non-ssl
-process.env.EMAILSECURE = true; // true means use SSL
-process.env.EMAILFROM = "VISTEK - Vehicle Information Systems <support@vehicleinformationsystem.com>";
-process.env.EMAILSUBJECT = "Message from VISTEK - Vehicle Information Systems";
-process.env.STRIPEKEY = "sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQxDy7SwyNaE1ubfjrEyc9XQ8BgPiYgGHcQ96zeY600pJwvegb9";
+process.env.APPCRYPTOVERIFICATIONENCRYPTIONKEY = "nVRQO_K1GVt}yH1Plkl9?V~EWu-/1y67";
+process.env.APPCRYPTOVERIFICATIONENCRYPTIONVECTOR = "MIGeMA0GCSqGSIb3";
+process.env.APPEMAILUSER = "support@vehicleinformationsystem.com";
+process.env.APPEMAILPASS = "Spring@202!";
+process.env.APPEMAILHOST = "smtpout.secureserver.net";
+process.env.APPEMAILPORT = 465; //465 for ssl, 587 for non-ssl
+process.env.APPEMAILSECURE = true; // true means use SSL
+process.env.APPEMAILFROM = "VISTEK - Vehicle Information Systems <support@vehicleinformationsystem.com>";
+process.env.APPEMAILSUBJECT = "Message from VISTEK - Vehicle Information Systems";
+process.env.APPSTRIPEKEY = "sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQxDy7SwyNaE1ubfjrEyc9XQ8BgPiYgGHcQ96zeY600pJwvegb9";
 process.env.APPMESSAGEERRORCOLOR = "#B00020";
 process.env.APPMESSAGEINFOCOLOR = "#6200EE";
 
@@ -83,13 +83,13 @@ function array2object(arr) {
 //encryption-decryption
 import crypto from "crypto"; //to make email verification using encrypted key. It is builtin into node.
 function encrypt(data) {
-	const cipher = crypto.createCipheriv("aes-256-cbc", process.env.CRYPTOVERIFICATIONENCRYPTIONKEY, process.env.CRYPTOVERIFICATIONENCRYPTIONVECTOR)
+	const cipher = crypto.createCipheriv("aes-256-cbc", process.env.APPCRYPTOVERIFICATIONENCRYPTIONKEY, process.env.APPCRYPTOVERIFICATIONENCRYPTIONVECTOR)
 	let encryptedData = cipher.update(data, 'utf-8', 'hex')
 	encryptedData += cipher.final('hex')
 	return encryptedData
 }
 function decrypt(data){
-  const decipher = crypto.createDecipheriv("aes-256-cbc", process.env.CRYPTOVERIFICATIONENCRYPTIONKEY, process.env.CRYPTOVERIFICATIONENCRYPTIONVECTOR);
+  const decipher = crypto.createDecipheriv("aes-256-cbc", process.env.APPCRYPTOVERIFICATIONENCRYPTIONKEY, process.env.APPCRYPTOVERIFICATIONENCRYPTIONVECTOR);
   if (data) {
     let decryptedData = decipher.update(data, 'hex', 'utf-8');
     decryptedData += decipher.final('utf-8');
@@ -103,21 +103,21 @@ import nodemailer from "nodemailer";
 function sendemail(receiver, message, attachments){
   nodemailer
     .createTransport({
-      "host": process.env.EMAILHOST,
-      "port": process.env.EMAILPORT,
-      "secure": process.env.EMAILSECURE
+      "host": process.env.APPEMAILHOST,
+      "port": process.env.APPEMAILPORT,
+      "secure": process.env.APPEMAILSECURE
       "auth": {
-        "user": process.env.EMAILUSER,
-        "pass": process.env.EMAILPASS,
+        "user": process.env.APPEMAILUSER,
+        "pass": process.env.APPEMAILPASS,
       },
       "tls": {
         "rejectUnauthorized": false // do not fail on invalid certs
       }
     })
     .sendMail({
-      "from": process.env.EMAILFROM,
+      "from": process.env.APPEMAILFROM,
       "to": `${receiver}`, 
-      "subject": process.env.EMAILSUBJECT,
+      "subject": process.env.APPEMAILSUBJECT,
       "html": message,
       "attachments": attachments
     }, (error) => {
@@ -131,7 +131,7 @@ import superagent from "superagent";
 
 //stripe api
 import Stripe from "stripe";
-let stripe = Stripe(process.env.STRIPEKEY);
+let stripe = Stripe(process.env.APPSTRIPEKEY);
 gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
   if (!res) {
     stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
@@ -410,8 +410,8 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
-    if (req.hostname == "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
-    if (req.hostname != "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    if (req.hostname == "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.headers.host}:${process.env.PORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    if (req.hostname != "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.hostname}:${process.env.PORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
