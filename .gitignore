@@ -3,7 +3,7 @@ node_modules
 radata
 /dist
 config.js
-/.c9
+/.c9/*
 
 # local env files
 .env.local
