@@ -106,7 +106,7 @@ function sendemail(receiver, message, attachments){
     .createTransport({
       "host": process.env.APPEMAILHOST,
       "port": process.env.APPEMAILPORT,
-      "secure": process.env.APPEMAILSECURE
+      "secure": process.env.APPEMAILSECURE,
       "auth": {
         "user": process.env.APPEMAILUSER,
         "pass": process.env.APPEMAILPASS,
