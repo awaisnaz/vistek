@@ -153,8 +153,8 @@ gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not eve
 
 ////////////////////////////////////// APP ENDPOINTS //////////////////////////////////////////////////
 app.use((req, res, next) => {
-  // req.appdomain = `https://${req.hostname}:${req.socket.localPort}`;//${req.protocol} for http/https
-  req.appdomain = "blah";
+  req.appdomain = `https://${req.hostname}:${req.socket.localPort}`;//${req.protocol} for http/https
+  // req.appdomain = "blah";
   req.timestamp = Date.now();
   req.dom = {//req stores values from previous request sessions, so need to initialize it on every request. Initializing the dom variable to null otherwise, error occurs of reading/writing attirbute of undefined nested object in if statements and crud code.
     page: null,
@@ -413,7 +413,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "info@teknikality.co.uk") req.dom.account.login.role = "admin";
-    email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    email(req.cookies.user, `${req.appdomain}Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
@@ -439,7 +439,7 @@ app.use("/account/reset", (req, res, next) => {
   if (req.body.accountresetemail) {
     req.dom.account.reset.message.text = "Please check your email, and click on the email verification link, to change your password. The password will remain unchanged without email verification.";
     req.dom.account.reset.message.color = process.env.APPMESSAGEINFOCOLOR;
-  if (req.hostname == "localhost") email(req.cookies.user,`click <a href="http://${req.headers.host}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
+    if (req.hostname == "localhost") email(req.cookies.user,`click <a href="http://${req.headers.host}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
     if (req.hostname != "localhost") email(req.cookies.user,`click <a href="https://${req.hostname}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
   }
 
