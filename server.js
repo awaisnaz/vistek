@@ -153,7 +153,8 @@ gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not eve
 
 ////////////////////////////////////// APP ENDPOINTS //////////////////////////////////////////////////
 app.use((req, res, next) => {
-  req.appdomain = `https://${req.hostname}:${req.socket.localPort}`;//${req.protocol} for http/https
+  // req.appdomain = `https://${req.hostname}:${req.socket.localPort}`;//${req.protocol} for http/https
+  req.appdomain = "blah";
   req.timestamp = Date.now();
   req.dom = {//req stores values from previous request sessions, so need to initialize it on every request. Initializing the dom variable to null otherwise, error occurs of reading/writing attirbute of undefined nested object in if statements and crud code.
     page: null,
@@ -411,7 +412,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.dashboard.reports.cars = {};
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
-    if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
+    if (req.body.accountregisteremail == "info@teknikality.co.uk") req.dom.account.login.role = "admin";
     email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
