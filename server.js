@@ -413,7 +413,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "info@teknikality.co.uk") req.dom.account.login.role = "admin";
-    email(req.cookies.user, `${req.appdomain}Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    email(req.cookies.user, `${req.appdomain} BLAH BLAH Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
