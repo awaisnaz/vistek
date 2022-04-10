@@ -136,7 +136,7 @@ let stripe = Stripe(process.env.APPSTRIPEKEY);
 gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
   if (!res) {
     stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-      url: `${process.env.APPDOMAIN}/webhook`,
+      url: `${req.appdomain}/webhook`,
       enabled_events: [
         'charge.failed',
         'charge.succeeded',
@@ -510,7 +510,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: [`${process.env.APPDOMAIN}/reportbasic.jpg`],
+              images: [`${req.appdomain}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -518,8 +518,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${req.appdomain}/report?regno=${req.body.dashboardreportsbalanceaddbasic}`,
+      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -540,7 +540,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: [`${process.env.APPDOMAIN}/reportfull.jpg`],
+              images: [`${req.appdomain}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -548,8 +548,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddfull == "ORDER FULL REPORT" ? `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${req.appdomain}/report?regno=${req.body.dashboardreportsbalanceaddfull}`,
+      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -570,7 +570,7 @@ app.use("/dashboard/reports", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: [`${process.env.APPDOMAIN}/reportmulti.jpg`],
+              images: [`${req.appdomain}/reportmulti.jpg`],
             },
             unit_amount: 1445,
           },
@@ -578,8 +578,8 @@ app.use("/dashboard/reports", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagemulti=1`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagemulti=1`,
+      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -672,7 +672,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: [`${process.env.APPDOMAIN}/reportbasic.jpg`],
+              images: [`${req.appdomain}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -680,8 +680,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagebasic=1`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
+      success_url: `${req.appdomain}/dashboard/balance?dashboardbalancemessagebasic=1`,
+      cancel_url: `${req.appdomain}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -702,7 +702,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: [`${process.env.APPDOMAIN}/reportfull.jpg`],
+              images: [`${req.appdomain}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -710,8 +710,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagefull=1`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
+      success_url: `${req.appdomain}/dashboard/balance?dashboardbalancemessagefull=1`,
+      cancel_url: `${req.appdomain}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -732,7 +732,7 @@ app.use("/dashboard/balance", (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'MULTIPLE VIS REPORTS',
-              images: [`${process.env.APPDOMAIN}/reportmulti.jpg`],
+              images: [`${req.appdomain}/reportmulti.jpg`],
             },
             unit_amount: 1445,
           },
@@ -740,8 +740,8 @@ app.use("/dashboard/balance", (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagemulti=1`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/balance?dashboardbalancemessagecancel=1`
+      success_url: `${req.appdomain}/dashboard/balance?dashboardbalancemessagemulti=1`,
+      cancel_url: `${req.appdomain}/dashboard/balance?dashboardbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -847,7 +847,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'BASIC VIS REPORT',
-              images: [`${process.env.APPDOMAIN}/reportbasic.jpg`],
+              images: [`${req.appdomain}/reportbasic.jpg`],
             },
             unit_amount: 249,
           },
@@ -855,8 +855,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${req.appdomain}/report?regno=${req.body.basicsectionunregisteredorder}`,
+      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -877,7 +877,7 @@ app.use("/report", upload.array(), (req, res, next) => {
             currency: 'gbp',
             product_data: {
               name: 'FULL VIS REPORT',
-              images: [`${process.env.APPDOMAIN}/reportfull.jpg`],
+              images: [`${req.appdomain}/reportfull.jpg`],
             },
             unit_amount: 799,
           },
@@ -885,8 +885,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${req.appdomain}/report?regno=${req.body.fullsectionunregisteredorder}`,
+      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
