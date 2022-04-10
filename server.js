@@ -2,6 +2,7 @@
 
 //ENVIRONMENT VARIABLES
 process.env.APPDOMAIN = "http://18.134.73.1:8080/";
+process.env.APPPORT = "8080";
 process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
 process.env.APPS3SECRET = "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";
 process.env.APPS3BUCKET = "vistek";
@@ -33,7 +34,7 @@ app.use(express.urlencoded({extended: true})); //populates req.body with form da
 app.use(express.static('assets')); // makes a subfolder for static files.
 app.use(compression());
 let upload = multer(); // populates req.body with upload form data.
-let server = app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("server started.")); //Start the server. heroku adds env automatically so process.env.PORT is necessary.
+let server = app.listen(process.env.PORT || process.env.APPPORT, "0.0.0.0", () => console.log("server started.")); //Start the server. heroku adds env automatically so process.env.PORT is necessary.
 
 
 //jsdom for emailing pdf report
@@ -410,8 +411,8 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
-    if (req.hostname == "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.headers.host}:${process.env.PORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.headers.host}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
-    if (req.hostname != "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.hostname}:${process.env.PORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.hostname}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    if (req.hostname == "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.headers.host}:${process.env.APPPORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.headers.host}:${process.env.APPPORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    if (req.hostname != "localhost") sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${req.hostname}:${process.env.APPPORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${req.hostname}:${process.env.APPPORT}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
@@ -437,8 +438,8 @@ app.use("/account/reset", (req, res, next) => {
   if (req.body.accountresetemail) {
     req.dom.account.reset.message.text = "Please check your email, and click on the email verification link, to change your password. The password will remain unchanged without email verification.";
     req.dom.account.reset.message.color = process.env.APPMESSAGEINFOCOLOR;
-    if (req.hostname == "localhost") sendemail(req.cookies.user,`click <a href="http://${req.headers.host}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
-    if (req.hostname != "localhost") sendemail(req.cookies.user,`click <a href="https://${req.hostname}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
+  if (req.hostname == "localhost") sendemail(req.cookies.user,`click <a href="http://${req.headers.host}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
+    if (req.hostname != "localhost") sendemail(req.cookies.user,`click <a href="https://${req.hostname}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
   }
 
   if (req.query.accountresetconfirm && req.query.accountresetconfirm  == decrypt(req.query.token)) {
