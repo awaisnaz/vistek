@@ -18,8 +18,8 @@ process.env.APPEMAILSUBJECT = "Message from VISTEK - Vehicle Information Systems
 process.env.APPSTRIPEKEY = "sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUkPrcOxQxDy7SwyNaE1ubfjrEyc9XQ8BgPiYgGHcQ96zeY600pJwvegb9";
 process.env.APPMESSAGEERRORCOLOR = "#B00020";
 process.env.APPMESSAGEINFOCOLOR = "#6200EE";
+process.env.APPMESSAGEINFOCOLORDARK = "#CF9AFF";
 
-console.log(process.env);
 
 //express
 import express from "express"; //main REST API handler
@@ -381,7 +381,7 @@ app.use("/account/login", (req, res, next) => {
   }
   if (req.query.accountresetconfirm) { 
     req.dom.account.login.message.text = "You have successfully reset your account password. Please login to continue to the dashboard.";
-    req.dom.account.login.message.color = ;
+    req.dom.account.login.message.color = process.env.APPMESSAGEINFOCOLOR;
   }
 
   req.dom.account.login.last = Date.now();
@@ -482,22 +482,22 @@ app.use("/dashboard/reports", (req, res, next) => {
   
   if (req.query.dashboardreportsbalancemessagebasic) {
     req.dom.dashboard.reports.balance.message.text = "Single Basic Report Credit has been added to your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
+    req.dom.dashboard.reports.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.query.dashboardreportsbalancemessagefull) {
     req.dom.dashboard.reports.balance.message.text = "1 Full Report Credit has been added to your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
+    req.dom.dashboard.reports.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.query.dashboardreportsbalancemessagemulti) {
     req.dom.dashboard.reports.balance.message.text = "3 Full Report Credits have been added to your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF9AFF";
+    req.dom.dashboard.reports.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.query.dashboardreportsbalancemessagecancel) {
     req.dom.dashboard.reports.balance.message.text = "Your transaction has been cancelled and your card was not charged, nor any balance were settled at your account.";
-    req.dom.dashboard.reports.balance.message.color = "#CF6679";
+    req.dom.dashboard.reports.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
   
   if (req.body.dashboardreportsbalanceaddbasic) {
@@ -644,22 +644,22 @@ app.use("/dashboard/balance", (req, res, next) => {
 
   if (req.query.dashboardbalancemessagebasic) {
     req.dom.dashboard.balance.message.text = "Single Basic Report Credit has been added to your account.";
-    req.dom.dashboard.balance.message.color = "#CF9AFF";
+    req.dom.dashboard.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.query.dashboardbalancemessagefull) {
     req.dom.dashboard.balance.message.text = "1 Full Report Credit has been added to your account.";
-    req.dom.dashboard.balance.message.color = "#CF9AFF";
+    req.dom.dashboard.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.query.dashboardbalancemessagemulti) {
     req.dom.dashboard.balance.message.text = "3 Full Report Credits have been added to your account.";
-    req.dom.dashboard.balance.message.color = "#CF9AFF";
+    req.dom.dashboard.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.query.dashboardbalancemessagecancel) {
     req.dom.dashboard.balance.message.text = "Your transaction has been cancelled and your card was not charged, nor any balance were settled at your account.";
-    req.dom.dashboard.balance.message.color = "#CF6679";
+    req.dom.dashboard.balance.message.color = process.env.APPMESSAGEINFOCOLORDARK;
   }
 
   if (req.body.dashboardbalanceaddbasic) {
