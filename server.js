@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////INITIALIZATION//////////////////////////////////////////////////////////////////////
 
 //ENVIRONMENT VARIABLES
-process.env.APPDOMAIN = "http://18.134.73.1:8080/";
+process.env.APPDOMAIN = "http://18.134.73.1:8080";
 process.env.APPPORT = "8080";
 process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
 process.env.APPS3SECRET = "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";
@@ -411,6 +411,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "sakeg27302@shackvine.com") req.dom.account.login.role = "admin";
+    console.log(process.env.APPDOMAIN);
     sendemail(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="http://${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">http://${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
