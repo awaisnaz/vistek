@@ -4,6 +4,7 @@ radata
 /dist
 config.js
 /.c9/*
+.gitignore
 
 # local env files
 .env.local
