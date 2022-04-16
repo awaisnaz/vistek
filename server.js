@@ -881,7 +881,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     req.dom.report.mode = temp[1];
   }
   
-  console.log("RRRRR",${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder});
+  console.log("RRRRR",`${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`);
   if (req.body.basicsectionunregisteredorder) {
     stripe.checkout.sessions.create({
       // customer_email: req.cookies.user,
