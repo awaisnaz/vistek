@@ -137,9 +137,9 @@ import Stripe from "stripe";
 let stripe = Stripe(process.env.APPSTRIPEKEY);
 let stripewebhook = await stripe.webhookEndpoints.list();
 // console.log("QQQQQ",stripewebhook);
-stripewebhook.data.forEach(ele=>{
+stripewebhook.data.forEach(elem=>{
   // consooe.log(ele.url);
-  let stripewebhookurl = ele.url;
+  let stripewebhookurl = elem.url;
   // console.log("Stripe webhook exists at:",stripewebhookurl);
   gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
     if (res && res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
@@ -169,6 +169,12 @@ stripewebhook.data.forEach(ele=>{
 });
 
 
+// stripe.webhookEndpoints.list().then(res=>{
+//   res.data.forEach(ele=>{
+//     stripe.webhookEndpoints.del(ele.id);
+//   });
+// });
+
 
 // stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
 //   url: `${process.env.APPDOMAIN}/webhook`,
@@ -187,9 +193,9 @@ stripewebhook.data.forEach(ele=>{
 // });
 
 
-stripe.events.list({
-  limit: 1,
-}).then(res=>console.log(res));
+// stripe.events.list({
+//   limit: 1,
+// }).then(res=>console.log(res));
 
 
 
