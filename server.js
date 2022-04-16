@@ -142,8 +142,8 @@ stripewebhook.data.forEach(ele=>{
   let stripewebhookurl = ele.url;
   // console.log("Stripe webhook exists at:",stripewebhookurl);
   gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
-    if (res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
-    if (res.url != stripewebhookurl) {
+    if (res && res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
+    if (res && res.url != stripewebhookurl) {
       stripe.webhookEndpoints.list().then(res=>{
         res.data.forEach(ele=>{
           stripe.webhookEndpoints.del(ele.id);
