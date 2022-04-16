@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////INITIALIZATION//////////////////////////////////////////////////////////////////////
 
 //ENVIRONMENT VARIABLES
-// process.env.APPDOMAIN = "https://627b75b6b526413796cb7e1fe50fb4a0.vfs.cloud9.eu-west-2.amazonaws.com:8080";
-process.env.APPDOMAIN = "13.40.237.152:8080";
+process.env.APPDOMAIN = "https://627b75b6b526413796cb7e1fe50fb4a0.vfs.cloud9.eu-west-2.amazonaws.com:8080";
+// process.env.APPDOMAIN = "13.40.237.152:8080";
 process.env.APPPORT = "8080";
 process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
 process.env.APPS3SECRET = "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";
@@ -168,6 +168,8 @@ stripewebhook.data.forEach(ele=>{
   });
 });
 
+
+
 // stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
 //   url: `${process.env.APPDOMAIN}/webhook`,
 //   enabled_events: [
@@ -185,9 +187,9 @@ stripewebhook.data.forEach(ele=>{
 // });
 
 
-// stripe.events.list({
-//   limit: 3,
-// }).then(res=>console.log(res));
+stripe.events.list({
+  limit: 1,
+}).then(res=>console.log(res));
 
 
 
@@ -899,14 +901,14 @@ app.use("/report", upload.array(), (req, res, next) => {
       success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
-      .then(resp => {
-        res.redirect(resp.url);
-        req.sent = 1;//end express session
-        next();
-      })
-      .catch(err => {
-        console.log(err);
-      });
+    .then(resp => {
+      res.redirect(resp.url);
+      req.sent = 1;//end express session
+      next();
+    })
+    .catch(err => {
+      console.log(err);
+    });
   }
   
   if (req.body.fullsectionunregisteredorder) {
