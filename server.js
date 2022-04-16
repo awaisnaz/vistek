@@ -898,7 +898,7 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
+      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
     .then(resp => {
@@ -5290,7 +5290,7 @@ app.use((req, res, next) => {
     res.send(dom);
   }
   
-  if (req.email) {
+  if (0 && req.email) {
     (async () => {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
