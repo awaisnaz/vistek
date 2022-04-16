@@ -1,7 +1,8 @@
 //////////////////////////////////////////////////INITIALIZATION//////////////////////////////////////////////////////////////////////
 
 //ENVIRONMENT VARIABLES
-process.env.APPDOMAIN = "http://18.134.73.1:8080";
+// process.env.APPDOMAIN = "https://627b75b6b526413796cb7e1fe50fb4a0.vfs.cloud9.eu-west-2.amazonaws.com:8080";
+process.env.APPDOMAIN = "13.40.237.152:8080";
 process.env.APPPORT = "8080";
 process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
 process.env.APPS3SECRET = "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";
@@ -130,29 +131,69 @@ function email(receiver, message, attachments){
 //superagent fetch
 import superagent from "superagent";
 
+
 //stripe api
 import Stripe from "stripe";
 let stripe = Stripe(process.env.APPSTRIPEKEY);
-gun.get("webhooks").get("stripe").once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
-  if (!res) {
-    stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-      url: `${req.appdomain}/webhook`,
-      enabled_events: [
-        'charge.failed',
-        'charge.succeeded',
-      ],
-    }).then(res => {
-      gun.get("webhooks").get("stripe").put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
-        "id": res.id,
-        "url": res.url
+let stripewebhook = await stripe.webhookEndpoints.list();
+// console.log("QQQQQ",stripewebhook);
+stripewebhook.data.forEach(ele=>{
+  // consooe.log(ele.url);
+  let stripewebhookurl = ele.url;
+  // console.log("Stripe webhook exists at:",stripewebhookurl);
+  gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
+    if (res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
+    if (res.url != stripewebhookurl) {
+      stripe.webhookEndpoints.list().then(res=>{
+        res.data.forEach(ele=>{
+          stripe.webhookEndpoints.del(ele.id);
+        });
       });
-      console.log("stripe webhook created");
-    });
-  }
+      stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
+        url: `${process.env.APPDOMAIN}/webhook`,
+        enabled_events: [
+          'charge.failed',
+          'charge.succeeded'
+          // '*'
+        ],
+        connect: true
+      }).then(res => {
+        gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
+          "id": res.id,
+          "url": res.url
+        });
+        console.log("stripe webhook created at:",res.url);
+      });
+    }
+  });
 });
+
+// stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
+//   url: `${process.env.APPDOMAIN}/webhook`,
+//   enabled_events: [
+//     // 'charge.failed',
+//     // 'charge.succeeded',
+//     '*'
+//   ],
+//   connect: true
+// }).then(res => {
+//   gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
+//     "id": res.id,
+//     "url": res.url
+//   });
+//   console.log("stripe webhook created at:",res.url);
+// });
+
+
+// stripe.events.list({
+//   limit: 3,
+// }).then(res=>console.log(res));
+
+
 
 ////////////////////////////////////// APP ENDPOINTS //////////////////////////////////////////////////
 app.use((req, res, next) => {
+  console.log("PPPP",req.url);
   req.appdomain = `${req.protocol}://${req.hostname}:${req.socket.localPort}`;
   // req.appdomain = "blah";
   req.timestamp = Date.now();
@@ -855,8 +896,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${req.appdomain}/report?regno=${req.body.basicsectionunregisteredorder}`,
-      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -885,8 +926,8 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${req.appdomain}/report?regno=${req.body.fullsectionunregisteredorder}`,
-      cancel_url: `${req.appdomain}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}`,
+      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
         res.redirect(resp.url);
@@ -1209,9 +1250,10 @@ app.use((req, res, next) => {
   // if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
   // if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
 
+  console.log("page:",req.appdomain+req.url);
   console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
   console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
-  console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
+  // console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
   console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
   console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
   gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.

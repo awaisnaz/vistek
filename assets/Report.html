@@ -65,6 +65,9 @@
               background-position: 20% center;
               background-size:cover;
             }
+            .homeservices1main2{
+              width:100%;
+            }
             .dashboardmenu{
               justify-content:stretch;
             }
@@ -147,6 +150,10 @@
               background-image:url("background.jpg");
               background-color: #3079be;
               background-position: center center;
+              background-repeat: no-repeat;
+            }
+           .homeservices1main2{
+              width:50%;
             }
             .dashboardmenu{
               justify-content:space-between;
@@ -232,7 +239,7 @@
               window.history.replaceState( null, null, window.location.href );
             }
 
-            dom = {"account":{"login":{"active":"ACTIVE","last":1649223990425,"message":{"color":"#6200EE","text":null},"role":null,"status":null},"register":{"message":{"color":"#6200EE","text":null}},"reset":{"message":{"color":null,"text":null}}},"admin":{"id":null,"json":{},"message":"","root":null},"contact":{"message":{"color":null,"text":null}},"dashboard":{"balance":{"basic":0,"full":0,"message":{"color":null,"text":null},"transactions":{}},"profile":{"contact":"","email":"KOGIP58542@VSOOC.COM","message":{"color":null,"text":null},"name":"KOGIP58542@VSOOC.COM","password":"4c6b82fbdfcc80be5c7537fb3cc1c889"},"reports":{"add":{"message":{"color":"","text":null}},"balance":{"message":{"color":"","text":""}},"cars":{"AA19AAA":{"basic":0,"full":0,"timestamp":1649153687463}},"page":1,"search":{"message":{"color":"","text":null},"regno":null}}},"home":{"banner":{"bg":{"message":{"color":null,"text":""}}}},"page":"/report","report":{"basic":{"valuation":null,"vehicleandmothistory":{"MotHistory":{"RecordList":null},"VehicleRegistration":null}},"counter":4,"dvla":null,"full":null,"mode":null,"regno":null}};
+            dom = {"page":"/report","home":{"banner":{"bg":{"message":{"text":"","color":null}}}},"account":{"login":{"active":null,"status":null,"role":null,"last":0,"message":{"text":null,"color":null}},"register":{"message":{"text":null,"color":null}},"reset":{"message":{"text":null,"color":null}}},"dashboard":{"reports":{"balance":{"message":{"text":"","color":""}},"add":{"message":{"text":"","color":""}},"search":{"regno":null,"message":{"text":"","color":""}},"cars":{},"page":1},"balance":{"basic":0,"full":0,"message":{"text":null,"color":null},"transactions":{}},"profile":{"name":null,"email":null,"contact":null,"password":null,"message":{"text":null,"color":null}}},"admin":{"root":null,"id":null,"json":{},"message":""},"report":{"regno":"EU07JUA","mode":"basic","dvla":{"co2Emissions":270,"colour":"WHITE","dateOfLastV5CIssued":"2021-12-08","engineCapacity":2720,"fuelType":"DIESEL","make":"LAND ROVER","markedForExport":false,"monthOfFirstRegistration":"2007-07","motExpiryDate":"2021-12-07","motStatus":"Not valid","registrationNumber":"EU07JUA","revenueWeight":3180,"taxDueDate":"2021-10-31","taxStatus":"Untaxed","typeApproval":"M1","wheelplan":"2 AXLE RIGID BODY","yearOfManufacture":2007},"basic":{"valuation":null,"vehicleandmothistory":{"VehicleRegistration":null,"MotHistory":{"RecordList":null}}},"full":null,"counter":4},"contact":{"message":{"text":null,"color":null}}};
             console.log({"dom": dom});
 
             if(dom.page == "/"){
@@ -714,7 +721,7 @@
                   <img class="logo" src="/logo.jpg" style="width:4rem;background-color:grey;background-image:url('/logo.jpg');background-size:cover;" alt="vistek logo" loading="lazy">
                 </a>
               </div>
-              <div class="navmenu" style="display:grid;grid-template-columns:auto auto auto auto auto auto auto auto; align-self:center;">
+              <div class="navmenu" style="display:grid;grid-template-columns:auto auto auto auto auto auto auto auto; align-self:center;margin-right:0.5rem;">
                 <div class="navregno" style="display:none;grid-auto-flow:column;grid-gap:0.25rem;align-items:center;align-self:center;justify-content:center;height:51px;margin:0 0.5rem 0;">
                   <form id="navvehiclereg" action="/report" method="post">
                   </form>
@@ -878,10 +885,10 @@
               </div>
             </div>
             <div class="services1" id="services" style="display:grid;justify-items:center;">
-              <div style="display:grid;justify-items:center;width:96vw;margin:0.5em;margin:1rem 0;">
-                <div style="display:grid;grid-template-rows: auto auto; justify-items:center;grid-gap:0.5rem;width:100%;">
+              <div class="homeservices1main1" style="display:grid;justify-items:center;width:96vw;margin:0.5em;margin:1rem 0;">
+                <div class="homeservices1main2" style="display:grid;grid-template-rows: auto auto; justify-items:center;grid-gap:0.5rem;">
                   <div style="display:grid;justify-items:center;width:100%;">
-                    <div style="display:grid;justify-items:center;grid-gap:0.5rem;background:#f9d441;font-size:2rem;font-weight:bold;padding:0.5rem;">
+                    <div style="display:grid;justify-items:center;grid-gap:0.5rem;background:#f9d441;font-size:2rem;font-weight:bold;padding:0.5rem;width:100%;">
                       Services
                     </div>
                   </div>
@@ -957,7 +964,7 @@
                   Outstanding Car Finance & Logbook Loan Check
                 </div>
                 <div>
-                  If you buy a car that has an outstanding loan or finance agreement against it, then you are in danger of losing the vehicle, and money you paid for it. This is a real risk when purchasing a second-hand vehicle, so using a car finance checker to look into its history is an important action to take.<br/><br/>
+                  If you buy a car that has an outstanding loan or finance agreement against it, then you are in danger of losing the vehicle, and the money you paid for it. This is a real risk when purchasing a second-hand vehicle, so using a car finance checker to look into its history is an important action to take.<br/><br/>
                   Our full VIS Report includes a car finance check, which will flag up any outstanding finance agreements that remain on the vehicle. This vehicle finance check will quickly let you know if the car, van or motorbike you are after is safe to buy.
                 </div>
                 <div style="font-size:2rem;font-weight:bold;justify-self:center;text-align:center;">
@@ -965,14 +972,14 @@
                 </div>
                 <div>
                   When finance is taken out on a car, it means that the lender maintains ownership of the vehicle until the complete debt has been paid off. Only then does it become the property of the borrower. An outstanding finance check will inform you of whether there is any debt owed on the vehicle.<br/><br/>
-                  Otherwise, even if you buy a car with the best intentions, without undertaking any HPI Finance Check on the car, you could endup buying a vehicle that is not legally yours. Where the finance has not been settled, the lender is within their rights to repossess the vehicle, meaning you could lose the car and money you paid.
+                  Otherwise, even if you buy a car with the best intentions, without undertaking any VIS Finance Check on the car, you could end up buying a vehicle that is not legally yours. Where the finance has not been settled, the lender is within their rights to repossess the vehicle, meaning you could lose the car and money you paid.
                 </div>
                 <div style="font-size:2rem;font-weight:bold;justify-self:center;text-align:center;">
                   Check the Vehicle's Finance History
                 </div>
                 <div>
                   Our Vehicle Checker's services include many essential inspections to ensure the car you are buying is safe and legal to purchase, including a logbook loan check. The debt stays with the vehicle and not the borrower, so unless you use a Car Finance Checker beforehand, you can be taking on an extra financial burden or putting yourself at risk of losing the car.<br/><br/>
-                  Bewary of any place offering a free Car Check though, as anywhere that claims to provide such a service will not be delivering the genuine article. Instead, use the reliable VIS Reports to be safe in the knowledge of your new vehicle's financial history.
+                  Be wary of any place offering a free Car Check though, as anywhere that claims to provide such a service will not be delivering the genuine article. Instead, use the reliable VIS Reports to be safe in the knowledge of your new vehicle's financial history.
                 </div>
               </div>
             </div>
@@ -983,7 +990,7 @@
                 </div>
               </div>
               <div class="homepackagesdetails" style="display:grid;grid-template-columns:repeat(4,minmax(0,auto));justify-items:stretch;align-items:stretch;grid-gap:0.1rem;color:white;">
-                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;border-top-left-radius:1rem;">
+                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;">
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     PRODUCTS
                   </div>
@@ -1007,7 +1014,7 @@
                     £7.99
                   </div>
                 </div>
-                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;border-top-right-radius:1rem;">
+                <div style="display:grid;grid-template-rows:repeat(auto-fit,minmax(0,auto));justify-items:center;background:#f9d441;padding:0.5rem;">
                   <div style="font-size:1rem;font-weight:bold;color:black;margin-bottom:0.5rem;text-align:center;">
                     MULTIPLE FULL REPORTS
                   </div>
@@ -1183,13 +1190,13 @@
                 <div style="display:grid;background:#2f2e2a;padding:0.5rem;font-weight:bold;justify-items:center;align-items:center;text-align:center;">
                   Three(3)
                 </div>
-                <div style="background:#2f2e2a;border-bottom-left-radius:1rem;">
+                <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
                   </div>
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number above to get its Report.'; 
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
@@ -1201,7 +1208,7 @@
                 </div>
                 <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number above to get its Report.'; 
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
@@ -1211,9 +1218,9 @@
                     ">
                   </div>
                 </div>
-                <div style="background:#2f2e2a;border-bottom-right-radius:1rem;">
+                <div style="background:#2f2e2a;">
                   <div style="display:grid;justify-items:center;">
-                    <input name="homeregno" type="submit" style="background-color:#f9d441; border-radius:0.5rem;padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
+                    <input name="homeregno" type="submit" style="background-color:#f9d441; padding:0.5rem;font-weight:bold;border:0px;font-size:1rem;cursor:pointer;margin:0.5rem;" value="ORDER" onclick="
                       window.document.querySelector('.homebannerbgmessage').style.display = 'grid'; 
                       window.document.querySelector('.homebannerbgmessage').innerHTML = 'Please enter Vehicle Registration Number above to get its Report.'; 
                       window.document.querySelector('.homebannerbgmessage').style.color = '#B00020'; 
@@ -1331,10 +1338,16 @@
                   <input form="accountreset" type="email" name="accountresetemail" placeholder="Email Address" required style="background-color:#c4c4c4;padding:1rem;border:0;outline:none;text-align:center;font-size:1rem;box-sizing:border-box;border-radius:2rem;">
                 </div>
                 <div class="accountresetpassword" style="display:grid;justify-items:stretch;">
-                  <input form="accountreset" type="password" name="accountresetpassword" placeholder="New Password" pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$" title="Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character #, ?, !, @, $, %, ^, &, *, -." required style="background-color:#c4c4c4;padding:1rem;border:0;outline:none;text-align: center;font-size:1rem;box-sizing:border-box;border-radius:2rem;">
+                  <input class="accountresetpasswordinput" form="accountreset" type="password" name="accountresetpassword" placeholder="New Password" pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$" title="Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character #, ?, !, @, $, %, ^, &, *, -." required style="background-color:#c4c4c4;padding:1rem;border:0;outline:none;text-align: center;font-size:1rem;box-sizing:border-box;border-radius:2rem;">
                 </div>
                 <div class="accountresetsubmit" style="display:grid;justify-items:stretch;width:227px;">
-                  <input form="accountreset" type="submit" value="Reset Password" style="background-color:#f9d441;padding:1rem;border:0;outline:none;text-align:center;font-size:1rem;width:100%;box-sizing:border-box;cursor:pointer;border-radius:2rem;font-weight:bold;">
+                  <input form="accountreset" type="submit" value="Reset Password" style="background-color:#f9d441;padding:1rem;border:0;outline:none;text-align:center;font-size:1rem;width:100%;box-sizing:border-box;cursor:pointer;border-radius:2rem;font-weight:bold;" onclick="let pattern = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/; if(!pattern.test(document.querySelector('.accountresetpasswordinput').value)) {
+                      window.document.querySelector('.accountresetmessage').style.display = 'grid';
+                      window.document.querySelector('.accountresetmessage').innerHTML = 'Please re-enter password meeting the criteria: minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character #, ?, !, @, $, %, ^, &, *, -.';
+                      window.document.querySelector('.accountresetmessage').style.color = '#B00020';
+                      window.document.querySelector('.accountresetmessage').style.fontSize = '1rem'; 
+                      return false;
+                    }">
                 </div>
               </div>
               <div class="accountresetmessage" style="display:none;grid-template-rows:repeat(auto-fit,minmax(0,auto));background:#d6d6d6;justify-self:center;margin:0.5rem;padding:0.5rem;font-size:0.9rem;color:#6200EE;font-weight:bold;text-align:justify;">
@@ -3362,12 +3375,12 @@
             </div>
           </div>
           <div class="contact" style="display:none;justify-items:center;grid-gap:0.5rem;">
-            <div class="contactbackground" style="background-image:url('contactbackground.jpg');background-size:cover;font-weight:bold;font-size:4rem;text-align:center;width:100%;">
-              <div style="margin-left:4rem;">
-                Contact a Member
+            <div class="contactbackground" style="display:grid;justify-items:center;background-image:url('contactbackground.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;font-weight:bold;font-size:4rem;text-align:center;width:100%;">
+              <div class="contactbackgroundtitle">
+                Contact Us
               </div>
-              <div style="margin-left:4rem;font-size:2rem;font-weight:normal;">
-                of the Team
+              <div class="contactbackgroundtext" style="font-size:1rem;font-weight:normal;">
+                If you have any question or would like to comment on our service or an industry issue, please contact us. We would like to hear from you.
               </div>
             </div>
             <style>
@@ -3375,11 +3388,28 @@
                 .contactbackground{
                   padding:20rem 0;
                 }
+               .contactbackgroundtitle{
+                  margin-left: 10rem;
+                  width: 50%;
+                }
+               .contactbackgroundtext{
+                  margin-left: 10rem;
+                  width:40%;
+                }
               }
               @media all and (max-width: 551px){
                 .contactbackground{
                   background-position:center;
-                  padding:3rem 0;
+                }
+                .contactbackgroundtitle{
+                  margin-left: 6rem;
+                  font-size: 3rem;
+                  margin-top: 4rem;
+                }
+               .contactbackgroundtext{
+                  margin-left: 6rem;
+                  width: 50%;
+                  margin-bottom: 4rem;
                 }
               }
             </style>
@@ -3448,9 +3478,15 @@
             </div>
           </div>
           <div class="about" style="display:none;">
-            <div class="abouttitle" style="background-image:url('aboutbackground.jpg');background-size:cover;text-align:center;font-weight:bold;font-size:4rem;width:100%;">
-              <div class="abouttitletext">
+            <div class="abouttitle" style="background-image:url('aboutbackground.jpg');background-size:cover;background-position:center center;background-size:cover;background-repeat:no-repeat;">
+              <div class="abouttitletext" style="text-align:center;font-weight:bold;font-size:4rem;width:100%;margin-bottom:1rem;">
                 About Us
+              </div>
+              <div style="text-align:center;width:100%;margin-bottom:1rem;">
+                VIS introduced vehicle history checks. Over time, we have built a strong reputation for credibility and trust.
+              </div>
+              <div style="text-align:center;width:100%;">
+                VIS Check is the largest provider of technology driven data solutions in the automotive market, combining industry and unique data sets to create innovative and powerful solutions through excellent customer service.
               </div>
             </div>
             <style>
