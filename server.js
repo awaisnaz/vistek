@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////INITIALIZATION//////////////////////////////////////////////////////////////////////
 
 //ENVIRONMENT VARIABLES
-process.env.APPDOMAIN = "https://627b75b6b526413796cb7e1fe50fb4a0.vfs.cloud9.eu-west-2.amazonaws.com:8080";
-// process.env.APPDOMAIN = "13.40.237.152:8080";
+// process.env.APPDOMAIN = "https://627b75b6b526413796cb7e1fe50fb4a0.vfs.cloud9.eu-west-2.amazonaws.com:8080";
+process.env.APPDOMAIN = "13.40.237.152:8080";
 process.env.APPPORT = "8080";
 process.env.APPS3KEY = "AKIAXPDPHMRN4YDG7R5S";
 process.env.APPS3SECRET = "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";
