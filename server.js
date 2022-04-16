@@ -135,38 +135,40 @@ import superagent from "superagent";
 //stripe api
 import Stripe from "stripe";
 let stripe = Stripe(process.env.APPSTRIPEKEY);
-let stripewebhook = await stripe.webhookEndpoints.list();
-// console.log("QQQQQ",stripewebhook);
-stripewebhook.data.forEach(elem=>{
-  // consooe.log(ele.url);
-  let stripewebhookurl = elem.url;
-  // console.log("Stripe webhook exists at:",stripewebhookurl);
-  gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
-    if (res && res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
-    if (res && res.url != stripewebhookurl) {
-      stripe.webhookEndpoints.list().then(res=>{
-        res.data.forEach(ele=>{
-          stripe.webhookEndpoints.del(ele.id);
+stripe.webhookEndpoints.list().then(stripewebhook =>{
+  // console.log("QQQQQ",stripewebhook);
+  stripewebhook.data.forEach(elem=>{
+    // consooe.log(ele.url);
+    let stripewebhookurl = elem.url;
+    // console.log("Stripe webhook exists at:",stripewebhookurl);
+    gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
+      if (res && res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
+      if (res && res.url != stripewebhookurl) {
+        stripe.webhookEndpoints.list().then(res=>{
+          res.data.forEach(ele=>{
+            stripe.webhookEndpoints.del(ele.id);
+          });
         });
-      });
-      stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-        url: `${process.env.APPDOMAIN}/webhook`,
-        enabled_events: [
-          'charge.failed',
-          'charge.succeeded'
-          // '*'
-        ],
-        connect: true
-      }).then(res => {
-        gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
-          "id": res.id,
-          "url": res.url
+        stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
+          url: `${process.env.APPDOMAIN}/webhook`,
+          enabled_events: [
+            'charge.failed',
+            'charge.succeeded'
+            // '*'
+          ],
+          connect: true
+        }).then(res => {
+          gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
+            "id": res.id,
+            "url": res.url
+          });
+          console.log("stripe webhook created at:",res.url);
         });
-        console.log("stripe webhook created at:",res.url);
-      });
-    }
+      }
+    });
   });
 });
+
 
 
 // stripe.webhookEndpoints.list().then(res=>{
