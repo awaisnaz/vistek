@@ -457,7 +457,7 @@ app.use("/account/register", (req, res, next) => {
     req.dom.account.register.message.text = "Thank you for registering as a user of Vehicle Information System (VIS). Please check your email and click on the confirmation link to verify your email address.";
     req.dom.account.register.message.color = process.env.APPMESSAGEINFOCOLOR;
     if (req.body.accountregisteremail == "info@teknikality.co.uk") req.dom.account.login.role = "admin";
-    email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${req.appdomain}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
+    email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team.`);
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
@@ -483,8 +483,7 @@ app.use("/account/reset", (req, res, next) => {
   if (req.body.accountresetemail) {
     req.dom.account.reset.message.text = "Please check your email, and click on the email verification link, to change your password. The password will remain unchanged without email verification.";
     req.dom.account.reset.message.color = process.env.APPMESSAGEINFOCOLOR;
-    if (req.hostname == "localhost") email(req.cookies.user,`click <a href="http://${req.headers.host}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
-    if (req.hostname != "localhost") email(req.cookies.user,`click <a href="https://${req.hostname}:${process.env.APPPORT}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
+    email(req.cookies.user,`click <a href="${process.env.APPDOMAIN}/account/reset?accountresetconfirm=${req.cookies.user}&token=${encrypt(req.body.accountresetemail)}&accountresetpassword=${encrypt(req.body.accountresetpassword)}">here</a> to change your password. If this was not you, you can safely ignore this email.`);
   }
 
   if (req.query.accountresetconfirm && req.query.accountresetconfirm  == decrypt(req.query.token)) {
@@ -898,13 +897,12 @@ app.use("/report", upload.array(), (req, res, next) => {
           quantity: 1,
         }
       ],
-      metadata: {'user': req.cookies.user},
+      // client_reference_id: {'user': req.cookies.user},
       mode: 'payment',
       success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}&metadata=${req.cookies.user}`,
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
     .then(resp => {
-      console.log("DDDD",resp);
       res.redirect(resp.url);
       req.sent = 1;//end express session
       next();
@@ -1248,13 +1246,6 @@ app.use("/webhook", (req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  // if(req.cookies.user) console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
-  // if(req.cookies.user) console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
-  // if(req.cookies.user) console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
-  // if(req.cookies.user) console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
-  // if(req.cookies.user) console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
-  // if(req.cookies.user) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
-
   console.log("page:",req.appdomain+req.url);
   console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
   console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
