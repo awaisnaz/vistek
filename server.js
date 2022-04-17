@@ -353,7 +353,7 @@ app.use((req, res, next) => {
     });//gun.load hangs if gun.once is not called before it.    
   }
 
-  setTimeout(()=>{},200);
+  setTimeout(()=>{},100);
   
   if (req.cookies.user && req.url != "/webhook") {
     gun.get("users").get(req.cookies.user).once(res => {
@@ -380,6 +380,7 @@ app.use((req, res, next) => {
 
 //home page rest endpoint
 app.use("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
+  console.log("AAA",req.dom);
   req.dom.page = "/";//it it at last to account for any session changes
   req.dom.home.banner.bg.message.text = ""; //initialization
   
