@@ -491,7 +491,7 @@ app.use("/account/reset", (req, res, next) => {
   if (req.query.accountresetconfirm && req.query.accountresetconfirm  == decrypt(req.query.token)) {
     req.dom.dashboard.profile.password = req.query.accountresetpassword;
     email(req.cookies.user, `Your password has been reset. If this was you, you can safely ignore this email.`);
-    res.redirect("/account/login?accountresetconfirm=1");
+    res.redirect(`/account/login?accountresetconfirm=${req.cookies.user}`);
     req.sent = 1;//end express session
   }
 
