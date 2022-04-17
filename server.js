@@ -898,7 +898,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           quantity: 1,
         }
       ],
-      metadata: req.cookies.user,
+      metadata: {'user': req.cookies.user},
       mode: 'payment',
       success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}&metadata=${req.cookies.user}`,
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
