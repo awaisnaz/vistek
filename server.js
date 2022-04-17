@@ -361,8 +361,6 @@ app.use((req, res, next) => {
         gun.get("users").get(req.cookies.user).load(res => {
           if (res) {
             req.dom = res;
-            console.log("AAA",req.cookies.user);
-            console.log("BBB",req.dom);
             next();
           }
           if (!res) {//if database malfunctions, and doesn't return anything then redirect
