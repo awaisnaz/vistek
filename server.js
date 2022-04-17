@@ -923,6 +923,7 @@ app.use("/report", upload.array(), (req, res, next) => {
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
       .then(resp => {
+        console.log("RESP",resp);
         res.redirect(resp.url);
         req.sent = 1;//end express session
         next();
