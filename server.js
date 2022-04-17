@@ -337,7 +337,7 @@ app.use((req, res, next) => {
         req.dom.dashboard.balance.basic = 0;
         req.dom.dashboard.balance.full = 0;
         req.dom.dashboard.reports.cars = {};
-        email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team. Your temporry password is: ${password}.`);
+        // email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team. Your temporry password is: ${password}.`);
         next();
       }
     });//gun.load hangs if gun.once is not called before it.    
@@ -893,7 +893,7 @@ app.use("/report", upload.array(), (req, res, next) => {
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
     .then(resp => {
-      console.log("RESP",resp.url);
+      console.log("RESP",resp);
       res.redirect(resp.url);
       req.sent = 1;//end express session
       next();
