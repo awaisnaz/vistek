@@ -276,7 +276,7 @@ app.use((req, res, next) => {
   req.sent = null;//default on every session.
   req.email = null;//default on every sesion.
   
-  if (!req.cookies.session && !req.body.accountloginemail && !req.body.accountregisteremail && !req.body.accountresetemail && req.url != "/webhook") {
+  if (!req.cookies.user && !req.body.accountloginemail && !req.body.accountregisteremail && !req.body.accountresetemail && req.url != "/webhook") {
     res.cookie("user", encrypt((Math.random() * 100000000000000000000).toString()));
     res.cookie("cookiepolicy", 0);
     console.log("cookie set.");
