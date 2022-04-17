@@ -1201,6 +1201,9 @@ app.use("/terms", (req, res, next) => {
 });
 
 app.use("/webhook", (req, res, next) => {
+  console.log("AAA",req.body.data.object.billing_details);
+  console.log("BBB",req.body.data.object.outcome);
+  console.log("CCC",req.body.data.object.paymentmethoddetails);
   if (Object.keys(req.dom.dashboard.balance.transactions).includes((req.body.created*1000).toString())) {
     next();
   }
@@ -1231,15 +1234,15 @@ app.use("/webhook", (req, res, next) => {
   req.dom.dashboard.balance.transactions[req.body.created].balancefull = req.dom.dashboard.balance.full;
 
   if (req.body.type == 'charge.succeeded') {
-    console.log("webhook:", {
-      "time": Date.now(),
-      "email": req.body.data.object.billing_details.email,
-      "amount": req.body.data.object.amount,
-      "status": req.body.type
-    });
+    // console.log("webhook:", {
+    //   "time": Date.now(),
+    //   "email": req.body.data.object.billing_details.email,
+    //   "amount": req.body.data.object.amount,
+    //   "status": req.body.type
+    // });
     res.status(200).send('OK');//sending status of 200 is must otherwise, stripe will keep on resending and then ultimately fail.
     req.sent = 1;//end express session
-    console.log("--------------------------------");
+    // console.log("--------------------------------");
   }
 
   req.dom.page = "/webhook";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
