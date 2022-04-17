@@ -889,10 +889,11 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}&user=a`,
+      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
     .then(resp => {
+      console.log("RESP",resp.url);
       res.redirect(resp.url);
       req.sent = 1;//end express session
       next();
