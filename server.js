@@ -275,6 +275,16 @@ app.use((req, res, next) => {
   };
   req.sent = null;//default on every session.
   req.email = null;//default on every sesion.
+  
+  if (!req.cookies.session && !req.body.accountloginemail && !req.body.accountregisteremail && !req.body.accountresetemail && req.url != "/webhook") {
+    res.cookie("session", encrypt((Math.random() * 100000000000000000000).toString()));
+    res.cookie("cookiepolicy", 0);
+    console.log("cookie set.");
+    console.log("--------------------------------");
+    res.redirect(req.url);
+    req.sent = 1;
+    next();
+  }
 
   req.cookies.user = decrypt(req.cookies.user); //if no user cookie stored, then req.cookies.user = null; otherwise req.cookies.user = email;
 
@@ -888,12 +898,12 @@ app.use("/report", upload.array(), (req, res, next) => {
           quantity: 1,
         }
       ],
+      metadata: req.cookies.user,
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`,
+      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}&metadata=${req.cookies.user}`,
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
     .then(resp => {
-      console.log("RESP",resp);
       res.redirect(resp.url);
       req.sent = 1;//end express session
       next();
