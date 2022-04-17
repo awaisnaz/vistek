@@ -353,7 +353,7 @@ app.use((req, res, next) => {
     });//gun.load hangs if gun.once is not called before it.    
   }
 
-  setTimeout(()=>{},100);
+  setTimeout(()=>{},200);
   
   if (req.cookies.user && req.url != "/webhook") {
     gun.get("users").get(req.cookies.user).once(res => {
