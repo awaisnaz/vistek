@@ -136,74 +136,32 @@ import superagent from "superagent";
 import Stripe from "stripe";
 let stripe = Stripe(process.env.APPSTRIPEKEY);
 stripe.webhookEndpoints.list().then(stripewebhook =>{
-  // console.log("QQQQQ",stripewebhook);
   stripewebhook.data.forEach(elem=>{
-    // consooe.log(ele.url);
-    let stripewebhookurl = elem.url;
-    // console.log("Stripe webhook exists at:",stripewebhookurl);
-    gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).once(res => {//gun crud operations are not event based, they are either taken or dropped, so do time gun operations accordingly.
-      if (res && res.url == stripewebhookurl) console.log("Stripe webhook exists at:",stripewebhookurl);
-      if (res && res.url != stripewebhookurl) {
-        stripe.webhookEndpoints.list().then(res=>{
-          res.data.forEach(ele=>{
-            stripe.webhookEndpoints.del(ele.id);
-          });
+    if (elem.url == `${process.env.APPDOMAIN}/webhook`) console.log("Stripe webhook exists at:", elem.url);
+    if (elem.url != `${process.env.APPDOMAIN}/webhook`) {
+      stripe.webhookEndpoints.list().then(res=>{
+        res.data.forEach(elem=>{
+          stripe.webhookEndpoints.del(elem.id);
         });
-        stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-          url: `${process.env.APPDOMAIN}/webhook`,
-          enabled_events: [
-            'charge.failed',
-            'charge.succeeded'
-            // '*'
-          ],
-          connect: true
-        }).then(res => {
-          gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
-            "id": res.id,
-            "url": res.url
-          });
-          console.log("stripe webhook created at:",res.url);
-        });
-      }
-    });
+      });
+      stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
+        url: `${process.env.APPDOMAIN}/webhook`,
+        enabled_events: [
+          'charge.failed',
+          'charge.succeeded'
+          // '*'
+        ],
+        connect: true
+      }).then(res => {
+        console.log("stripe webhook created at:",res.url);
+      });
+    }
   });
 });
 
 
-
-// stripe.webhookEndpoints.list().then(res=>{
-//   res.data.forEach(ele=>{
-//     stripe.webhookEndpoints.del(ele.id);
-//   });
-// });
-
-
-// stripe.webhookEndpoints.create({//same endpoint created twice leads to duplication of webhooks. maximum 16 webhooks allowed. So, call it only once.
-//   url: `${process.env.APPDOMAIN}/webhook`,
-//   enabled_events: [
-//     // 'charge.failed',
-//     // 'charge.succeeded',
-//     '*'
-//   ],
-//   connect: true
-// }).then(res => {
-//   gun.get("webhooks").get("stripe").get(process.env.APPDOMAIN).put({//using nested json instead of using nested get statements is required to put nested data on already filled node.
-//     "id": res.id,
-//     "url": res.url
-//   });
-//   console.log("stripe webhook created at:",res.url);
-// });
-
-
-// stripe.events.list({
-//   limit: 1,
-// }).then(res=>console.log(res));
-
-
-
 ////////////////////////////////////// APP ENDPOINTS //////////////////////////////////////////////////
 app.use((req, res, next) => {
-  console.log("PPPP",req.url);
   req.appdomain = `${req.protocol}://${req.hostname}:${req.socket.localPort}`;
   // req.appdomain = "blah";
   req.timestamp = Date.now();
@@ -356,8 +314,7 @@ app.use((req, res, next) => {
   }
 
   if (req.url == "/webhook" && req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email) {
-    req.body.data.object.billing_details.email = req.body.data.object.billing_details.email.toUpperCase();
-    req.cookies.user = req.body.data.object.billing_details.email;
+    req.cookies.user = req.body.data.object.billing_details.email.toUpperCase();
   }
 
   setTimeout(()=>{},100);
@@ -889,7 +846,6 @@ app.use("/report", upload.array(), (req, res, next) => {
     req.dom.report.mode = temp[1];
   }
   
-  console.log("RRRRR",`${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}`);
   if (req.body.basicsectionunregisteredorder) {
     stripe.checkout.sessions.create({
       // customer_email: req.cookies.user,
@@ -1264,7 +1220,6 @@ app.use((req, res, next) => {
   console.log("page:",req.appdomain+req.url);
   console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
   console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
-  // console.log("page:", req.url); //only log the loggedin user, otherwise spam bots also log.
   console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
   console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
   gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
