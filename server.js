@@ -1788,7 +1788,7 @@ app.use((req, res, next) => {
             }
             
             if (dom.report.basic.vehicleandmothistory.MotHistory.RecordList) {
-              dom.report.basic.vehicleandmothistory.MotHistory.RecordList = Object.keys(dom.report.vehicleandmothistory.MotHistory.RecordList).map((key) => dom.report.vehicleandmothistory.MotHistory.RecordList[key]);//converts from numbered object to object array.
+              dom.report.basic.vehicleandmothistory.MotHistory.RecordList = Object.keys(dom.report.basic.vehicleandmothistory.MotHistory.RecordList).map((key) => dom.report.basic.vehicleandmothistory.MotHistory.RecordList[key]);//converts from numbered object to object array.
               window.document.querySelector(".reportbasicmotrecords").innerHTML = "";
               dom.report.basic.vehicleandmothistory.MotHistory.RecordList.forEach((item,index)=>{
                 let reportbasicmotrecordtemplate = window.document.querySelector(".reportbasicmotrecordtemplate").cloneNode("true");// true: clone this node and also its decendents. false: clone this node but not its descendents.
