@@ -361,6 +361,8 @@ app.use((req, res, next) => {
         gun.get("users").get(req.cookies.user).load(res => {
           if (res) {
             req.dom = res;
+            console.log("AAA",req.cookies.user);
+            console.log("BBB",req.dom);
             next();
           }
           if (!res) {//if database malfunctions, and doesn't return anything then redirect
@@ -380,7 +382,6 @@ app.use((req, res, next) => {
 
 //home page rest endpoint
 app.use("/", (req, res, next) => {// .get is required so it does not mess by setting req.dom.page for all queries.
-  console.log("AAA",req.dom);
   req.dom.page = "/";//it it at last to account for any session changes
   req.dom.home.banner.bg.message.text = ""; //initialization
   
