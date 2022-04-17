@@ -1249,7 +1249,8 @@ app.use((req, res, next) => {
   console.log("page:",req.appdomain+req.url);
   console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
   console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
-  console.log("form:", req.body); //only log the loggedin user, otherwise spam bots also log.
+  console.log("body:", req.body); //only log the loggedin user, otherwise spam bots also log.
+  console.log("query:", req.query);
   console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
   gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
 
