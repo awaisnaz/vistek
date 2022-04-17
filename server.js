@@ -904,6 +904,7 @@ app.use("/report", upload.array(), (req, res, next) => {
       cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
     })
     .then(resp => {
+      console.log("DDDD",resp);
       res.redirect(resp.url);
       req.sent = 1;//end express session
       next();
@@ -1201,9 +1202,6 @@ app.use("/terms", (req, res, next) => {
 });
 
 app.use("/webhook", (req, res, next) => {
-  console.log("AAA",req.body.data.object.billing_details);
-  console.log("BBB",req.body.data.object.outcome);
-  console.log("CCC",req.body.data.object.paymentmethoddetails);
   if (Object.keys(req.dom.dashboard.balance.transactions).includes((req.body.created*1000).toString())) {
     next();
   }
