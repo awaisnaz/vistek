@@ -315,6 +315,11 @@ app.use((req, res, next) => {
 
   if (req.url == "/webhook" && req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email) {
     req.cookies.user = req.body.data.object.billing_details.email.toUpperCase();
+    gun.get("users").get(req.cookies.user).once(res => {
+      console.log("WEBHOOK", res);
+      if(res) console.log("EXISTS");
+      if(!res) console.log("NOT EXISTS");
+    });
   }
 
   setTimeout(()=>{},100);
@@ -5266,27 +5271,10 @@ app.use((req, res, next) => {
       if (req.cookies.user) email(req.cookies.user, "Attached is your VISTEK Report.", [{filename: "Report.pdf", path: pathToHtml}]);
       await browser.close();
     })();
-    
-    
-
-    // (async function() {
-    //     const instance = await phantom.create();
-    //     const page = await instance.createPage();
-    //     fs.writeFileSync("./assets/Report.html", dom);
-    //     let pathToHtml = path.join(path.resolve(), "/assets/Report.html");
-    
-    //     // await page.property('viewportSize', {width: 1024, height: 600});
-    //     const status = await page.open(`file:${pathToHtml}`, { waitUntil: ["load", "networkidle0"] });
-    //     console.log(`Page opened with status [${status}].`);
-    
-    //     await page.render('./assets/Report.pdf');
-    //     console.log(`File created at [./stackoverflow.pdf]`);
-    
-    //     await instance.exit();
-    // }());
   }
   
-  if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
+  // if(req.cookies.user) console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
+  console.log("--------------------------------"); //only log the loggedin user, otherwise spam bots also log.
 });
 
 //last rest point and catch all.
