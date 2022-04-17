@@ -316,15 +316,36 @@ app.use((req, res, next) => {
   if (req.url == "/webhook" && req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email) {
     req.cookies.user = req.body.data.object.billing_details.email.toUpperCase();
     gun.get("users").get(req.cookies.user).once(res => {
-      console.log("WEBHOOK", res);
-      if(res) console.log("EXISTS");
-      if(!res) console.log("NOT EXISTS");
-    });
+      if (res) {
+        gun.get("users").get(req.cookies.user).load(res => {
+          if (res) {
+            req.dom = res;
+            next();
+          }
+          if (!res) {//if database malfunctions, and doesn't return anything then redirect
+            res.redirect(req.url);
+            req.sent = 1;//end express session.
+          }
+        },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
+      }
+      if (!res) {
+        req.dom.dashboard.profile.name = req.cookies.user;
+        req.dom.dashboard.profile.email = req.cookies.user;
+        req.dom.dashboard.profile.contact = "";
+        let password = Math.random().toString(36).slice(-8);
+        req.dom.dashboard.profile.password = encrypt(password);
+        req.dom.dashboard.balance.basic = 0;
+        req.dom.dashboard.balance.full = 0;
+        req.dom.dashboard.reports.cars = {};
+        email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team. Your temporry password is: ${password}.`);
+        next();
+      }
+    });//gun.load hangs if gun.once is not called before it.    
   }
 
   setTimeout(()=>{},100);
   
-  if (req.cookies.user) {
+  if (req.cookies.user && req.url != "/webhook") {
     gun.get("users").get(req.cookies.user).once(res => {
       if (res) {
         gun.get("users").get(req.cookies.user).load(res => {
@@ -344,7 +365,7 @@ app.use((req, res, next) => {
     });//gun.load hangs if gun.once is not called before it.    
   }
 
-  if (!req.cookies.user) next();
+  if (!req.cookies.user && req.url != "/webhook") next();
 });
 
 //home page rest endpoint
