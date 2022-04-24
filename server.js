@@ -55,31 +55,78 @@ import path from "path";
 import Gun from "gun";// gun stores null, not undefined. Can not store object if a string or null is already stored on a node, it fails silently. gun does not have event loop, thus it may ignore crud operations if busy. gun can not save arrays, so use the listed functions below to save/retrieve arrays, ".put(array2object(document))", and "Object.keys(resp.arraylist).map((key) => resp.arraylist[key])".
 import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
 import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
+
+// import "gun-mongo-key";
+
+// const gun = new Gun({
+//     file: false,
+//     web: server,
+//     // The following are defaults. You can supply `true` to use all defaults
+//     mongo: {
+//       host: "mongodb+srv://vistek:5jQHM9B4ZSKK9tPY@cluster0.accx3.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+//     }
+// });
+
 let gun = Gun({
+  web: server,
   s3: { // Optional; update to save a copy to AWS S3
     key: process.env.APPS3KEY, // AWS Access Key
     secret: process.env.APPS3SECRET, // AWS Secret Token
     bucket: process.env.APPS3BUCKET // The bucket you want to save into
-  },
-  web: server
+  }
 });
+
 // let gun = Gun({web: server});
-function array2object(arr) {
-  var obj = {};
+
+// function array2object(arr){
+//   var obj = {};
+//   Gun.list.map(arr, function(v,f,t){
+//     if(Gun.list.is(v) || Gun.obj.is(v)){
+//       obj[f] = array2object(v);
+//       return;
+//     }
+//     obj[f] = v;
+//   });
+//   return obj;
+// }
+
+// function array2object(arr) {
+//   var obj = {};
+// 	Gun.list.map(arr, function(v, f, t) {
+// 		if (Gun.list.is(v) || Gun.obj.is(v)) {
+//       obj[f] = array2object(v);
+//       return;
+// 		}
+//     if (isNaN(f)) obj[f] = v;
+//     else obj[f - 1] = v;
+// 	})
+// 	if (obj[0]) {
+//     obj.length = Object.keys(obj).sort().pop();
+//     obj.length++;
+// 	}
+//   return obj;
+// };
+
+// console.log("HAHA",Gun.list);
+
+function array2object(arr) { // not 2016, but 2019 version and ES6 friendly.
+	var obj = {}
 	Gun.list.map(arr, function(v, f, t) {
 		if (Gun.list.is(v) || Gun.obj.is(v)) {
-      obj[f] = array2object(v);
-      return;
+			obj[f] = array2object(v)
+			return
 		}
-    if (isNaN(f)) obj[f] = v;
-    else obj[f - 1] = v;
+		if (isNaN(f)) obj[f] = v
+		else obj[f - 1] = v
 	})
 	if (obj[0]) {
-    obj.length = Object.keys(obj).sort().pop();
-    obj.length++;
+		obj.length = Object.keys(obj)
+			.sort()
+			.pop()
+		obj.length++
 	}
-  return obj;
-};
+	return obj
+}
 
 
 //encryption-decryption
@@ -153,7 +200,7 @@ stripe.webhookEndpoints.list().then(stripewebhook =>{
         ],
         connect: true
       }).then(res => {
-        console.log("stripe webhook created at:",res.url);
+        console.log("stripe webhook created at:", res.url);
       });
     }
   });
@@ -179,7 +226,7 @@ app.use((req, res, next) => {
     },
     account: {
       login: {
-        active: null,
+        verified: null,
         status: null,
         role: null,
         last: 0,
@@ -303,9 +350,8 @@ app.use((req, res, next) => {
   }
 
   if (req.query.accountregisterconfirm) {
-    req.query.accountregisterconfirm = req.query.accountregisterconfirm.toUpperCase();
-    req.cookies.user = req.query.accountregisterconfirm;
-    res.cookie("user", encrypt(req.query.accountregisterconfirm));
+    req.cookies.user = req.query.accountregisterconfirm.toUpperCase();
+    res.cookie("user", encrypt(req.cookies.user));
     res.cookie("cookie", 0);
   }
 
@@ -317,14 +363,42 @@ app.use((req, res, next) => {
   }
 
   if (req.query.accountresetconfirm) {
-    req.query.accountresetconfirm = req.query.accountresetconfirm.toUpperCase();
-    req.cookies.user = req.query.accountresetconfirm;
-    res.cookie("user", encrypt(req.query.accountresetconfirm));
+    req.cookies.user = req.query.accountresetconfirm.toUpperCase();
+    res.cookie("user", encrypt(req.cookies.user));
     res.cookie("cookie", 0);
+  }
+  
+  if (req.url.startsWith("/report") && req.query.unregistered){
+    gun.get("unregistered").get(req.cookies.user).once(resp=>{
+      req.cookies.user = resp.email.toUpperCase();
+      res.cookie("user", encrypt(req.cookies.user));
+      gun.get("users").get(req.cookies.user).once(res => {
+        if (res) {
+          gun.get("users").get(req.cookies.user).load(res => {
+            if (res) {
+              req.dom = res;
+              next();
+            }
+            if (!res) {//if database malfunctions, and doesn't return anything then redirect
+              res.redirect(req.url);
+              req.sent = 1;//end express session.
+            }
+          },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
+        }
+        if (!res) {
+          next();
+        }
+      });//gun.load hangs if gun.once is not called before it.   
+    });
   }
 
   if (req.url == "/webhook" && req.body.type == 'charge.succeeded' && req.body.data.object.billing_details.email) {
     req.cookies.user = req.body.data.object.billing_details.email.toUpperCase();
+    stripe.paymentIntents.retrieve(req.body.data.object.payment_intent).then(resp=>{
+      if(resp.status == "succeeded") {
+        gun.get("unregistered").get(resp.metadata.unregistered).get("email").put(req.body.data.object.billing_details.email);
+      }
+    });
     gun.get("users").get(req.cookies.user).once(res => {
       if (res) {
         gun.get("users").get(req.cookies.user).load(res => {
@@ -339,15 +413,17 @@ app.use((req, res, next) => {
         },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
       }
       if (!res) {
-        req.dom.dashboard.profile.name = req.cookies.user;
-        req.dom.dashboard.profile.email = req.cookies.user;
+        // res.cookie("user", encrypt(req.cookies.user));
+        // res.cookie("cookie", 0);
+        req.dom.dashboard.profile.name = req.body.data.object.billing_details.name;
+        req.dom.dashboard.profile.email = req.body.data.object.billing_details.email;
         req.dom.dashboard.profile.contact = "";
         let password = Math.random().toString(36).slice(-8);
         req.dom.dashboard.profile.password = encrypt(password);
         req.dom.dashboard.balance.basic = 0;
         req.dom.dashboard.balance.full = 0;
         req.dom.dashboard.reports.cars = {};
-        // email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Regards, <br/> VISTEK Team. Your temporry password is: ${password}.`);
+        email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Your temporry password is: ${password}. <br/><br/> Regards, <br/> VISTEK Team. `);
         next();
       }
     });//gun.load hangs if gun.once is not called before it.    
@@ -355,7 +431,7 @@ app.use((req, res, next) => {
 
   setTimeout(()=>{},100);
   
-  if (req.cookies.user && req.url != "/webhook") {
+  if (req.cookies.user && req.url != "/webhook" && !(req.url.startsWith("/report") && req.query.unregistered)) {
     gun.get("users").get(req.cookies.user).once(res => {
       if (res) {
         gun.get("users").get(req.cookies.user).load(res => {
@@ -411,17 +487,18 @@ app.use("/account/login", (req, res, next) => {
       req.dom.account.login.message.text = "You have entered wrong email or password, please re-enter the correct email/password.";
       req.dom.account.login.message.color = process.env.APPMESSAGEERRORCOLOR;
     }
-    if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && !req.dom.account.login.active) {
+    if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && !req.dom.account.login.verified) {
       req.dom.account.login.message.text = "You have not verified your email address yet. Please check your email and click on the confirmation link to verify your email address, to use the Vehicle Information System (VIS).";
       req.dom.account.login.message.color = process.env.APPMESSAGEERRORCOLOR;
     }
-    if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && req.dom.account.login.active) {
+    if (req.body.accountloginpassword == decrypt(req.dom.dashboard.profile.password) && req.dom.account.login.verified) {
       req.dom.account.login.status = 1;
       res.redirect("/dashboard/reports");
       req.sent = 1;//end express session
     }
   }
-  if (req.query.accountregisterconfirm) { 
+  if (req.query.accountregisterconfirm) {
+    req.dom.account.login.verified = 1;
     req.dom.account.login.message.text = "You have successfully registered and activated your account. Please login to continue to the dashboard.";
     req.dom.account.login.message.color = process.env.APPMESSAGEINFOCOLOR;
   }
@@ -461,7 +538,8 @@ app.use("/account/register", (req, res, next) => {
   }
 
   if (req.query.accountregisterconfirm && req.query.accountregisterconfirm == decrypt(req.query.token)) {
-    req.dom.account.login.active = "ACTIVE";
+    req.dom.account.login.verified = 1;
+    // req.dom.account.login.test = 1;
     res.redirect(`/account/login?accountregisterconfirm=${req.cookies.user}`);
     req.sent = 1;//end express session
   }
@@ -861,13 +939,14 @@ app.use("/report", upload.array(), (req, res, next) => {
   req.dom.report.mode = null;//initialization
   req.dom.report.dvla = null;//initialization
   // req.dom.report.basic = null;//initialization
-  req.dom.report.basic.valuation = null;//initialization
+  req.dom.report.basic.valuation = {};//initialization
   req.dom.report.basic.vehicleandmothistory.MotHistory.RecordList = null;//initialization
   req.dom.report.basic.vehicleandmothistory.VehicleRegistration = null;//initialization
   req.dom.report.full = null;//initialization
   req.dom.report.counter = 0;//initialization
   req.dom.page = "/report";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it. Setting it before other code helps set it before next() statement.
   req.email = 1;//email all reports
+  
 
   if (req.body.regno) {
     let temp = req.body.regno.split("-");
@@ -899,16 +978,25 @@ app.use("/report", upload.array(), (req, res, next) => {
       ],
       // client_reference_id: {'user': req.cookies.user},
       mode: 'payment',
-      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}&metadata=${req.cookies.user}`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      // metadata: {
+      //   unregistered: req.cookies.user
+      // },
+      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.basicsectionunregisteredorder}&unregistered=${req.cookies.user}`,
+      cancel_url: `${process.env.APPDOMAIN}`
     })
     .then(resp => {
+      gun.get("unregistered").get(req.cookies.user).get("paymentintent").put(resp.payment_intent);
+      stripe.paymentIntents.update(
+        resp.payment_intent,
+        {metadata: {unregistered: req.cookies.user}}
+      );
       res.redirect(resp.url);
       req.sent = 1;//end express session
       next();
     })
     .catch(err => {
       console.log(err);
+      next();
     });
   }
   
@@ -929,16 +1017,22 @@ app.use("/report", upload.array(), (req, res, next) => {
         }
       ],
       mode: 'payment',
-      success_url: req.body.dashboardreportsbalanceaddbasic == "ORDER BASIC REPORT" ? `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagebasic=1` : `${process.env.APPDOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}`,
-      cancel_url: `${process.env.APPDOMAIN}/dashboard/reports?dashboardreportsbalancemessagecancel=1`
+      success_url: `${process.env.APPDOMAIN}/report?regno=${req.body.fullsectionunregisteredorder}&unregistered=${req.cookies.user}`,
+      cancel_url: `${process.env.APPDOMAIN}`
     })
       .then(resp => {
-        res.redirect(`${resp.url}&user=a`);
+        gun.get("unregistered").get(req.cookies.user).get("paymentintent").put(resp.payment_intent);
+        stripe.paymentIntents.update(
+          resp.payment_intent,
+          {metadata: {unregistered: req.cookies.user}}
+        );
+        res.redirect(resp.url);
         req.sent = 1;//end express session
         next();
       })
       .catch(err => {
         console.log(err);
+        next();
       });
   }
 
@@ -979,7 +1073,7 @@ app.use("/report", upload.array(), (req, res, next) => {
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").once((res) => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata) {
+      if (res && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.basic.valuation = res;
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
@@ -1010,7 +1104,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           .then(res => {
             if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").put(res.body.Response.DataItems);
             req.dom.report.basic.valuation = res.body.Response.DataItems;
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
+            if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic) && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
@@ -1023,6 +1117,7 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
             if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
+              req.dom.dashboard.reports.cars[req.dom.report.regno] = {};
               req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
               req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//place it after the basic balance minus if statement.
             }
@@ -1031,7 +1126,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           })
           .catch(err => {
             console.log(err);
-            req.dom.report.basic = "error";
+            req.dom.report.basic = {};
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           });
@@ -1039,7 +1134,7 @@ app.use("/report", upload.array(), (req, res, next) => {
     });
     
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").once((res) => {
-      if (res && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory) {
+      if (res && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
           req.dom.report.basic.vehicleandmothistory = res;
           if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
@@ -1070,7 +1165,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           .then(res => {
             req.dom.report.basic.vehicleandmothistory = res.body.Response.DataItems;
             if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
+            if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic) && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
@@ -1083,6 +1178,7 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
             if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
+              req.dom.dashboard.reports.cars[req.dom.report.regno] = {};
               req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
               req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
             }
@@ -1091,7 +1187,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           })
           .catch(err => {
             console.log(err);
-            req.dom.report.basic = "error";
+            req.dom.report.basic = {};
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           });
@@ -1110,7 +1206,7 @@ app.use("/report", upload.array(), (req, res, next) => {
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full")))) {
     gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res) {
+      if (res && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
         gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").load((res) => {//sometimes gun.load hangs, so calling gun.once before it helps it not hang
           req.dom.report.full = res;
           req.dom.report.counter++;
@@ -1139,8 +1235,9 @@ app.use("/report", upload.array(), (req, res, next) => {
             if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
             req.dom.report.full = res.body.Response.DataItems;
             req.dom.report.counter++;
-            if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full && Object.keys(res.body.Response.DataItems).length) {
+            if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full) && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
+              req.dom.dashboard.reports.cars[req.dom.report.regno] = {};
               req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
@@ -1156,7 +1253,7 @@ app.use("/report", upload.array(), (req, res, next) => {
           })
           .catch(err => {
             console.log(err);
-            req.dom.report.full = "error";
+            req.dom.report.full = null;
             req.dom.report.counter++;
             if (req.dom.report.counter >= 4) next();
           });
@@ -1230,15 +1327,8 @@ app.use("/webhook", (req, res, next) => {
   req.dom.dashboard.balance.transactions[req.body.created].balancefull = req.dom.dashboard.balance.full;
 
   if (req.body.type == 'charge.succeeded') {
-    // console.log("webhook:", {
-    //   "time": Date.now(),
-    //   "email": req.body.data.object.billing_details.email,
-    //   "amount": req.body.data.object.amount,
-    //   "status": req.body.type
-    // });
     res.status(200).send('OK');//sending status of 200 is must otherwise, stripe will keep on resending and then ultimately fail.
     req.sent = 1;//end express session
-    // console.log("--------------------------------");
   }
 
   req.dom.page = "/webhook";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
@@ -1246,13 +1336,14 @@ app.use("/webhook", (req, res, next) => {
 });
 
 app.use((req, res, next) => {
+  // req.dom.account.login.verified = 1;
   console.log("page:",req.appdomain+req.url);
   console.log("user:", req.cookies.user); //only log the loggedin user, otherwise spam bots also log.
   console.log("time:", Date.now()); //only log the loggedin user, otherwise spam bots also log.
   console.log("body:", req.body); //only log the loggedin user, otherwise spam bots also log.
   console.log("query:", req.query);
   console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
-  gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
+  if (!(/^[0-9]*$/.test(req.cookies.user))) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
 
   let dom = `
     <!DOCTYPE html> 
@@ -5306,4 +5397,5 @@ app.use((req, res, next) => {
 app.use(/.*/, function (req, res, next) {
   if (!req.sent) res.redirect("/");
 });
+
 

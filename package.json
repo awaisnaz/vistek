@@ -26,11 +26,13 @@
     "express": "4.17.1",
     "git": "0.1.5",
     "gun": "0.2020.1232",
+    "gun-mongo-key": "0.1.4",
     "jsdom": "19.0.0",
     "jsoneditor": "9.7.0",
+    "mongodb": "4.5.0",
     "multer": "1.4.2",
     "nodemailer": "6.6.3",
-    "puppeteer": "^13.5.2",
+    "puppeteer": "13.5.2",
     "stripe": "8.191.0",
     "superagent": "6.1.0"
   }
