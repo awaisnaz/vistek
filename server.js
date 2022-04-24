@@ -20,6 +20,8 @@ process.env.APPSTRIPEKEY = "sk_test_51Jqd3RDg36XfZ4PUQmHwNmvavJbe4TlhaktAFbEAJUk
 process.env.APPMESSAGEERRORCOLOR = "#B00020";
 process.env.APPMESSAGEINFOCOLOR = "#6200EE";
 process.env.APPMESSAGEINFOCOLORDARK = "#CF9AFF";
+process.env.APPMONGOURL = "mongodb+srv://vistek:5jQHM9B4ZSKK9tPY@cluster0.accx3.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+process.env.APPMONGODB = "vistek";
 
 
 //express
@@ -47,85 +49,33 @@ import fsPromises from "fs/promises";
 import path from "path";
 
 
-//gun database
-//Database Structure:
-//gun.users.id
-//gun.vehicles.id
-//gun.webhooks.id 
-import Gun from "gun";// gun stores null, not undefined. Can not store object if a string or null is already stored on a node, it fails silently. gun does not have event loop, thus it may ignore crud operations if busy. gun can not save arrays, so use the listed functions below to save/retrieve arrays, ".put(array2object(document))", and "Object.keys(resp.arraylist).map((key) => resp.arraylist[key])".
-import "gun/lib/load.js";//load returns the full hierarchy, not just first depth which is the default.
-import "gun/lib/path.js";//path is convenience wrapper over gun.get such that we can give path in the argument.
+//mongodb
+import { MongoClient } from "mongodb";
 
-// import "gun-mongo-key";
+function get (collection, id) {
+  return new Promise((resp, rej) => {
+    MongoClient.connect(process.env.APPMONGOURL)
+      .then(client =>{
+        client.db(process.env.APPMONGODB).collection(collection).find({_id: id}).toArray().then((res)=>{
+          resp(res);
+          client.close();
+        });
+      })
+      .catch(e=>{console.log(e);rej(e)});
+  });
+}
 
-// const gun = new Gun({
-//     file: false,
-//     web: server,
-//     // The following are defaults. You can supply `true` to use all defaults
-//     mongo: {
-//       host: "mongodb+srv://vistek:5jQHM9B4ZSKK9tPY@cluster0.accx3.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-//     }
-// });
-
-let gun = Gun({
-  web: server,
-  s3: { // Optional; update to save a copy to AWS S3
-    key: process.env.APPS3KEY, // AWS Access Key
-    secret: process.env.APPS3SECRET, // AWS Secret Token
-    bucket: process.env.APPS3BUCKET // The bucket you want to save into
-  }
-});
-
-// let gun = Gun({web: server});
-
-// function array2object(arr){
-//   var obj = {};
-//   Gun.list.map(arr, function(v,f,t){
-//     if(Gun.list.is(v) || Gun.obj.is(v)){
-//       obj[f] = array2object(v);
-//       return;
-//     }
-//     obj[f] = v;
-//   });
-//   return obj;
-// }
-
-// function array2object(arr) {
-//   var obj = {};
-// 	Gun.list.map(arr, function(v, f, t) {
-// 		if (Gun.list.is(v) || Gun.obj.is(v)) {
-//       obj[f] = array2object(v);
-//       return;
-// 		}
-//     if (isNaN(f)) obj[f] = v;
-//     else obj[f - 1] = v;
-// 	})
-// 	if (obj[0]) {
-//     obj.length = Object.keys(obj).sort().pop();
-//     obj.length++;
-// 	}
-//   return obj;
-// };
-
-// console.log("HAHA",Gun.list);
-
-function array2object(arr) { // not 2016, but 2019 version and ES6 friendly.
-	var obj = {}
-	Gun.list.map(arr, function(v, f, t) {
-		if (Gun.list.is(v) || Gun.obj.is(v)) {
-			obj[f] = array2object(v)
-			return
-		}
-		if (isNaN(f)) obj[f] = v
-		else obj[f - 1] = v
-	})
-	if (obj[0]) {
-		obj.length = Object.keys(obj)
-			.sort()
-			.pop()
-		obj.length++
-	}
-	return obj
+function put (collection, id, doc) {
+  return new Promise((resp, rej) => {
+    MongoClient.connect(process.env.APPMONGOURL)
+      .then(client =>{
+        client.db(process.env.APPMONGODB).collection(collection).updateOne({_id: id}, {$set: doc}, {upsert: true}).then(res=>{
+          resp(res);
+          client.close();
+        });
+      })
+      .catch(e=>{console.log(e);rej(e)});
+    });
 }
 
 
@@ -369,26 +319,19 @@ app.use((req, res, next) => {
   }
   
   if (req.url.startsWith("/report") && req.query.unregistered){
-    gun.get("unregistered").get(req.cookies.user).once(resp=>{
+    get("unregistered", req.cookies.user).then(resp=>{
       req.cookies.user = resp.email.toUpperCase();
       res.cookie("user", encrypt(req.cookies.user));
-      gun.get("users").get(req.cookies.user).once(res => {
-        if (res) {
-          gun.get("users").get(req.cookies.user).load(res => {
-            if (res) {
-              req.dom = res;
-              next();
-            }
-            if (!res) {//if database malfunctions, and doesn't return anything then redirect
-              res.redirect(req.url);
-              req.sent = 1;//end express session.
-            }
-          },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
-        }
-        if (!res) {
-          next();
-        }
-      });//gun.load hangs if gun.once is not called before it.   
+      get("users", req.cookies.user)
+      .then(respp=>{
+        req.dom = respp;
+        next();
+      })
+      .catch(err=>{
+        res.redirect(req.url);
+        req.sent = 1;//end express session.
+        next();
+      });
     });
   }
 
@@ -396,25 +339,19 @@ app.use((req, res, next) => {
     req.cookies.user = req.body.data.object.billing_details.email.toUpperCase();
     stripe.paymentIntents.retrieve(req.body.data.object.payment_intent).then(resp=>{
       if(resp.status == "succeeded") {
-        gun.get("unregistered").get(resp.metadata.unregistered).get("email").put(req.body.data.object.billing_details.email);
+        put("unregistered", resp.metadata.unregistered, {
+          email: req.body.data.object.billing_details.email
+        });
       }
     });
-    gun.get("users").get(req.cookies.user).once(res => {
-      if (res) {
-        gun.get("users").get(req.cookies.user).load(res => {
-          if (res) {
-            req.dom = res;
-            next();
-          }
-          if (!res) {//if database malfunctions, and doesn't return anything then redirect
-            res.redirect(req.url);
-            req.sent = 1;//end express session.
-          }
-        },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
+    
+    get("users", req.cookies.user)
+    .then(res=>{
+      if(res[0]){
+        req.dom = res[0];
+        next();
       }
-      if (!res) {
-        // res.cookie("user", encrypt(req.cookies.user));
-        // res.cookie("cookie", 0);
+      if(!res[0]){
         req.dom.dashboard.profile.name = req.body.data.object.billing_details.name;
         req.dom.dashboard.profile.email = req.body.data.object.billing_details.email;
         req.dom.dashboard.profile.contact = "";
@@ -426,32 +363,33 @@ app.use((req, res, next) => {
         email(req.cookies.user, `Dear <a href="${req.cookies.user}">${req.cookies.user}</a>, <br/><br/> Your VISTEK Account has been created, please click on the URL below to activate it: <br/><br/> <a href="${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}">${process.env.APPDOMAIN}/account/register?accountregisterconfirm=${req.cookies.user}&token=${encrypt(req.cookies.user)}</a> <br/><br/> Your temporry password is: ${password}. <br/><br/> Regards, <br/> VISTEK Team. `);
         next();
       }
-    });//gun.load hangs if gun.once is not called before it.    
+    })
+    .catch(err=>{
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
+    });
   }
-
-  setTimeout(()=>{},100);
   
   if (req.cookies.user && req.url != "/webhook" && !(req.url.startsWith("/report") && req.query.unregistered)) {
-    gun.get("users").get(req.cookies.user).once(res => {
-      if (res) {
-        gun.get("users").get(req.cookies.user).load(res => {
-          if (res) {
-            req.dom = res;
-            next();
-          }
-          if (!res) {//if database malfunctions, and doesn't return anything then redirect
-            res.redirect(req.url);
-            req.sent = 1;//end express session.
-          }
-        },{wait:100});// no need to give {wait:x} at the gun.load for full doc load, after coding gun.once before it.
-      }
-      if (!res) {
+    get("users", req.cookies.user)
+    .then(res=>{
+      if(res[0]){
+        req.dom = res[0];
         next();
       }
-    });//gun.load hangs if gun.once is not called before it.    
+      if(!res[0]){
+        next();
+      }
+    })
+    .catch(err=>{
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
+    });
   }
 
-  if (!req.cookies.user && req.url != "/webhook") next();
+  if (!req.cookies.user && req.url != "/webhook" && !(req.url.startsWith("/report") && req.query.unregistered)) next();
 });
 
 //home page rest endpoint
@@ -576,11 +514,6 @@ app.use("/account/reset", (req, res, next) => {
 });
 
 app.use("/account/logout", (req, res, next) => {
-  if (req.dom.account.login.status) {
-    res.redirect("/dashboard/reports");
-    req.sent = 1;//end express session
-  }
-
   req.dom.account.login.status = null;
   req.dom.page = "/account/login";//setting page will be at the end before timeout, because it has coookies information that gets updated by the middleware before it.
   next();
@@ -914,18 +847,24 @@ app.use("/admin", (req, res, next) => {
   req.dom.admin.id = req.body.id != null ? req.body.id : null;
   req.dom.admin.json = null;
   req.dom.admin.message = "";
-  if (req.body.json) gun.get(req.body.root).get(req.body.id).put(JSON.parse(req.body.json));
+  if (req.body.json) put(req.body.root, req.body.id, JSON.parse(req.body.json));
   if (req.body.root && req.body.id) {
-    gun.get(req.body.root).get(req.body.id).once(res => {
-      if (res) {
-        gun.get(req.body.root).get(req.body.id).load(res => {
-          req.dom.admin.json = res;
-          req.dom.admin.message = "The record is successfully retrieved.";
-          if (req.body.json) req.dom.admin.message = "The record is successfully saved.";
-          next();
-        });
+    get(req.body.root, req.body.id)
+    .then(res=>{
+      if(res[0]){
+        req.dom.admin.json = res[0];
+        req.dom.admin.message = "The record is successfully retrieved.";
+        if (req.body.json) req.dom.admin.message = "The record is successfully saved.";
+        next();
       }
-      else next();
+      if(!res[0]){
+        next();
+      }
+    })
+    .catch(err=>{
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
     });
   }
   else {
@@ -935,6 +874,7 @@ app.use("/admin", (req, res, next) => {
 
 //report page rest endpoint
 app.use("/report", upload.array(), (req, res, next) => {
+  console.log("AAA", req.dom);
   req.dom.report.regno = null;//initialization
   req.dom.report.mode = null;//initialization
   req.dom.report.dvla = null;//initialization
@@ -985,7 +925,9 @@ app.use("/report", upload.array(), (req, res, next) => {
       cancel_url: `${process.env.APPDOMAIN}`
     })
     .then(resp => {
-      gun.get("unregistered").get(req.cookies.user).get("paymentintent").put(resp.payment_intent);
+      put("unregistered", req.cookies.user, {
+        paymentintent: resp.payment_intent
+      });
       stripe.paymentIntents.update(
         resp.payment_intent,
         {metadata: {unregistered: req.cookies.user}}
@@ -1021,7 +963,9 @@ app.use("/report", upload.array(), (req, res, next) => {
       cancel_url: `${process.env.APPDOMAIN}`
     })
       .then(resp => {
-        gun.get("unregistered").get(req.cookies.user).get("paymentintent").put(resp.payment_intent);
+        put("unregistered", req.cookies.user, {
+          paymentintent: resp.payment_intent
+        });
         stripe.paymentIntents.update(
           resp.payment_intent,
           {metadata: {unregistered: req.cookies.user}}
@@ -1037,33 +981,40 @@ app.use("/report", upload.array(), (req, res, next) => {
   }
 
   if (req.dom.report.regno) {
-    gun.get("vehicles").get(req.dom.report.regno).get("dvla").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res) {
-        gun.get("vehicles").get(req.dom.report.regno).get("dvla").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
-          req.dom.report.dvla = res;
+    get("vehicles", req.dom.report.regno)
+    .then(res=>{
+      if(res[0]){
+        req.dom.report.dvla = res[0].dvla;
+        req.dom.report.counter++;
+        if (req.dom.report.counter >= 4) next();
+      }
+      if(!res[0]){
+        superagent
+        .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
+        .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
+        .set('Content-Type', 'application/json')
+        .send({ registrationNumber: `${req.dom.report.regno}` })
+        .then(res => {
+          put("vehicles", req.dom.report.regno, {
+            dvla: res.body
+          });
+          req.dom.report.dvla = res.body;
           req.dom.report.counter++;
+          if (req.dom.report.counter >= 4) next();
+        })
+        .catch(err => {
+          console.log(err);
+          req.dom.report.dvla = "error";
+          req.dom.report.counter = req.dom.report.counter + 4;//dvla api fails with .catch, but vdicheck api's fails silently without .catch. So, when dvla api fails, it means that the registration number does not exist.
           if (req.dom.report.counter >= 4) next();
         });
       }
-      else {
-        superagent
-          .post("https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles")
-          .set('x-api-key', 'lnJTBRkwbm4Fxf5SWwCAi9l7OPV9pDTB7OvGpt6H')
-          .set('Content-Type', 'application/json')
-          .send({ registrationNumber: `${req.dom.report.regno}` })
-          .then(res => {
-            gun.get("vehicles").get(req.dom.report.regno).get("dvla").put(res.body);
-            req.dom.report.dvla = res.body;
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          })
-          .catch(err => {
-            console.log(err);
-            req.dom.report.dvla = "error";
-            req.dom.report.counter = req.dom.report.counter + 4;//dvla api fails with .catch, but vdicheck api's fails silently without .catch. So, when dvla api fails, it means that the registration number does not exist.
-            if (req.dom.report.counter >= 4) next();
-          });
-      }
+    })
+    .catch(err=>{
+      console.log(err);
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
     });
   }
   else { 
@@ -1072,38 +1023,42 @@ app.use("/report", upload.array(), (req, res, next) => {
   }
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic || req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.basic || req.dom.dashboard.balance.full) && (req.dom.report.mode == "basic" || req.dom.report.mode == "full"))))) {
-    gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").once((res) => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata) {
-        gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
-          req.dom.report.basic.valuation = res;
-          if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
-            req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-
-            let time = Date.now();
-            req.dom.dashboard.balance.transactions[time] = {};
-            req.dom.dashboard.balance.transactions[time].time = time;
-            req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
-            req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-            req.dom.dashboard.balance.transactions[time].charges = null;
-            req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
-            req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
-          }
-          if (req.dom.report.regno != "AA19AAA") {
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
-            req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//Place it after the basic balance minus if statement.
-          }
-          req.dom.report.counter++;
-          if (req.dom.report.counter >= 4) next();
-        });
+    get("vehicles", req.dom.report.regno)
+    .then(res=>{
+      if(res[0] && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata){
+        req.dom.report.basic.valuation = res[0].vdicheck.valuationdata;
+        if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
+          req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
+          let time = Date.now();
+          req.dom.dashboard.balance.transactions[time] = {};
+          req.dom.dashboard.balance.transactions[time].time = time;
+          req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
+          req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
+          req.dom.dashboard.balance.transactions[time].charges = null;
+          req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
+          req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
+          req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
+        }
+        if (req.dom.report.regno != "AA19AAA") {
+          req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//Place it after the basic balance minus if statement.
+          req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//Place it after the basic balance minus if statement.
+        }
+        req.dom.report.counter++;
+        if (req.dom.report.counter >= 4) next();
       }
       else {
         //valuationtestkey = "https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM="
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("valuationdata").put(res.body.Response.DataItems);
             req.dom.report.basic.valuation = res.body.Response.DataItems;
+            if(Object.keys(res.body.Response.DataItems).length) {
+              put("vehicles", req.dom.report.regno, {
+                vdicheck: {
+                  valuationdata: res.body.Response.DataItems
+                }
+              });
+            }
             if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic) && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
               let time = Date.now();
@@ -1117,7 +1072,6 @@ app.use("/report", upload.array(), (req, res, next) => {
               req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
             }
             if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.reports.cars[req.dom.report.regno] = {};
               req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
               req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivaluationdata = 1;//place it after the basic balance minus if statement.
             }
@@ -1131,15 +1085,52 @@ app.use("/report", upload.array(), (req, res, next) => {
             if (req.dom.report.counter >= 4) next();
           });
       }
+    })
+    .catch(err=>{
+      console.log(err);
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
     });
     
-    gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").once((res) => {
-      if (res && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory) {
-        gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").load((res) => {//gun.load frequently hangs, so use gun.once before it so it does not hangs.
-          req.dom.report.basic.vehicleandmothistory = res;
-          if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
-            req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
+    get("vehicles", req.dom.report.regno)
+    .then(res=>{
+      if(res[0] && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory){
+        req.dom.report.basic.vehicleandmothistory = res[0].vdicheck.vehicleandmothistory;
+        if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].basic && req.dom.report.mode != "full") {
+          req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
 
+          let time = Date.now();
+          req.dom.dashboard.balance.transactions[time] = {};
+          req.dom.dashboard.balance.transactions[time].time = time;
+          req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
+          req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
+          req.dom.dashboard.balance.transactions[time].charges = null;
+          req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
+          req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
+          req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
+        }
+        if (req.dom.report.regno != "AA19AAA") {
+          req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
+          req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
+        }
+        req.dom.report.counter++;
+        if (req.dom.report.counter >= 4) next();
+      }
+      else {
+        superagent
+        .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
+        .then(res => {
+          req.dom.report.basic.vehicleandmothistory = res.body.Response.DataItems;
+          if(Object.keys(res.body.Response.DataItems).length) {
+            put("vehicles", req.dom.report.regno, {
+              vdicheck: {
+                vehicleandmothistory: res.body.Response.DataItems
+              }
+            });
+          }
+          if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic) && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
+            req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
             let time = Date.now();
             req.dom.dashboard.balance.transactions[time] = {};
             req.dom.dashboard.balance.transactions[time].time = time;
@@ -1148,51 +1139,30 @@ app.use("/report", upload.array(), (req, res, next) => {
             req.dom.dashboard.balance.transactions[time].charges = null;
             req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
             req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
+            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
           }
-          if (req.dom.report.regno != "AA19AAA") {
+          if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
             req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
             req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
           }
           req.dom.report.counter++;
           if (req.dom.report.counter >= 4) next();
+        })
+        .catch(err => {
+          console.log(err);
+          req.dom.report.basic = {};
+          req.dom.report.counter++;
+          if (req.dom.report.counter >= 4) next();
         });
       }
-      else {
-        //valuationtestkey = "https://uk1.ukvehicledata.co.uk/api/datapackage/ValuationData?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM="
-        superagent
-          .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VehicleAndMotHistory?v=2&api_nullitems=1&auth_apikey=87715f2c-f6a3-4f77-8527-94511f3ee5a4&key_VRM=" + req.dom.report.regno)
-          .then(res => {
-            req.dom.report.basic.vehicleandmothistory = res.body.Response.DataItems;
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vehicleandmothistory").put(array2object(res.body.Response.DataItems));
-            if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].basic) && req.dom.report.mode != "full" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.balance.basic = req.dom.dashboard.balance.basic - 1;
-              let time = Date.now();
-              req.dom.dashboard.balance.transactions[time] = {};
-              req.dom.dashboard.balance.transactions[time].time = time;
-              req.dom.dashboard.balance.transactions[time].package = "Basic Report Package";
-              req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-              req.dom.dashboard.balance.transactions[time].charges = null;
-              req.dom.dashboard.balance.transactions[time].credits = "-1 Basic";
-              req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-              req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;  
-            }
-            if (req.dom.report.regno != "AA19AAA" && Object.keys(res.body.Response.DataItems).length) {
-              req.dom.dashboard.reports.cars[req.dom.report.regno] = {};
-              req.dom.dashboard.reports.cars[req.dom.report.regno].basic = 1;//place it after the basic balance minus if statement.
-              req.dom.dashboard.reports.cars[req.dom.report.regno].basicvdivehicleandmothistory = 1;//place it after the basic balance minus if statement.
-            }
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          })
-          .catch(err => {
-            console.log(err);
-            req.dom.report.basic = {};
-            req.dom.report.counter++;
-            if (req.dom.report.counter >= 4) next();
-          });
-      }
+    })
+    .catch(err=>{
+      console.log(err);
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
     });
+    
   } 
   else {
     req.dom.report.basic.valuation = null;//initialization
@@ -1205,39 +1175,42 @@ app.use("/report", upload.array(), (req, res, next) => {
   }
 
   if (req.dom.report.regno && (req.dom.report.regno == "AA19AAA" || (req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full || ((req.dom.dashboard.balance.full) && req.dom.report.mode == "full")))) {
-    gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").once(res => {//gun.load does does not work if there is no data on the node, so check before by gun.once if there is data on the node or not
-      if (res && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
-        gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").load((res) => {//sometimes gun.load hangs, so calling gun.once before it helps it not hang
-          req.dom.report.full = res;
-          req.dom.report.counter++;
-          if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
-            req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
-            req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
-           
-            let time = Date.now();
-            req.dom.dashboard.balance.transactions[time] = {};
-            req.dom.dashboard.balance.transactions[time].time = time;
-            req.dom.dashboard.balance.transactions[time].package = "Full Report Package";
-            req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
-            req.dom.dashboard.balance.transactions[time].charges = null;
-            req.dom.dashboard.balance.transactions[time].credits = "-1 Full";
-            req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
-            req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
-          }
-          if (req.dom.report.counter >= 4) next();
-        });
+    get("vehicles", req.dom.report.regno)
+    .then(res=>{
+      if(res[0] && req.dom.report.regno != "AA19AAA" && req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full){
+        req.dom.report.full = res[0].vdicheck.vdicheckfull;
+        req.dom.report.counter++;
+        if (req.dom.report.regno != "AA19AAA" && !req.dom.dashboard.reports.cars[req.dom.report.regno].full) {
+          req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
+          req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
+          let time = Date.now();
+          req.dom.dashboard.balance.transactions[time] = {};
+          req.dom.dashboard.balance.transactions[time].time = time;
+          req.dom.dashboard.balance.transactions[time].package = "Full Report Package";
+          req.dom.dashboard.balance.transactions[time].vehicle = req.dom.report.regno;
+          req.dom.dashboard.balance.transactions[time].charges = null;
+          req.dom.dashboard.balance.transactions[time].credits = "-1 Full";
+          req.dom.dashboard.balance.transactions[time].balancebasic = req.dom.dashboard.balance.basic;
+          req.dom.dashboard.balance.transactions[time].balancefull = req.dom.dashboard.balance.full;
+        }
+        if (req.dom.report.counter >= 4) next();
       }
       else {
         //vdicheckfulltestkey = "https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=";
         superagent
           .get("https://uk1.ukvehicledata.co.uk/api/datapackage/VdiCheckFull?v=2&api_nullitems=1&auth_apikey=C3BC75FB-2A5D-4246-8FA8-92B76B9B2AE6&key_VRM=" + req.dom.report.regno)
           .then(res => {
-            if(Object.keys(res.body.Response.DataItems).length) gun.get("vehicles").get(req.dom.report.regno).get("vdicheck").get("vdicheckfull").put(array2object(res.body.Response.DataItems));
+            if(Object.keys(res.body.Response.DataItems).length) {
+              put("vehicles", req.dom.report.regno, {
+                vdicheck: {
+                  vdicheckfull: res.body.Response.DataItems
+                }
+              });            
+            }
             req.dom.report.full = res.body.Response.DataItems;
             req.dom.report.counter++;
             if (req.dom.report.regno != "AA19AAA" && !(req.dom.dashboard.reports.cars[req.dom.report.regno] && req.dom.dashboard.reports.cars[req.dom.report.regno].full) && Object.keys(res.body.Response.DataItems).length) {
               req.dom.dashboard.balance.full = req.dom.dashboard.balance.full - 1;
-              req.dom.dashboard.reports.cars[req.dom.report.regno] = {};
               req.dom.dashboard.reports.cars[req.dom.report.regno].full = 1;
               let time = Date.now();
               req.dom.dashboard.balance.transactions[time] = {};
@@ -1258,6 +1231,12 @@ app.use("/report", upload.array(), (req, res, next) => {
             if (req.dom.report.counter >= 4) next();
           });
       }
+    })
+    .catch(err=>{
+      console.log(err);
+      res.redirect(req.url);
+      req.sent = 1;//end express session.
+      next();
     });
   }
   else {
@@ -1343,7 +1322,7 @@ app.use((req, res, next) => {
   console.log("body:", req.body); //only log the loggedin user, otherwise spam bots also log.
   console.log("query:", req.query);
   console.log("dom:", req.dom); //only log the loggedin user, otherwise spam bots also log.
-  if (!(/^[0-9]*$/.test(req.cookies.user))) gun.get("users").get(req.cookies.user).put(array2object(req.dom));//always use array2object for arrayed object. //only log the loggedin user, otherwise spam bots also log.
+  if (!(/^[0-9]*$/.test(req.cookies.user))) put("users", req.cookies.user, req.dom);
 
   let dom = `
     <!DOCTYPE html> 

@@ -2,6 +2,8 @@ TODO:
 
 1. Gun s3 instability issues.
 2. Unregistered pays successfully and gets report. But their account remains inactive. Check into that, and overall other dom variables.
+3. put database function should append, not replace.
+4. vdi process variables also.
 
 DONE:
 1. Solved issues indicated by Bilal.
